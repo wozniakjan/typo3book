@@ -1,0 +1,7 @@
+# Default PAGE object:
+page = PAGE
+page.10 = TEXT
+page.10.data = FIELD:title
+page.20 =< styles.content.get
+
+#page.10.data = FIELD:subtitle
