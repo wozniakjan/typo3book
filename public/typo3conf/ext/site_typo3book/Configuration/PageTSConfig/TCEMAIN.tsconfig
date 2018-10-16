@@ -1,0 +1,12 @@
+TCEMAIN.permissions{
+    #Group can do anything
+    #normally "delete" is disabled
+    group = show,edit,delete,new,editcontent
+    #Everybody can at least see the page
+    #as opposed to everybody can do nothing
+    everybody = show
+    #BE Users Owner for new pages
+    userid = 1
+    #BE Group Owner for new pages
+    groupid = 1
+}

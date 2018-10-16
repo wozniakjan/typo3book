@@ -1,0 +1,1 @@
+<INCLUDE_TYPOSCRIPT: source="DIR:EXT:site_typo3book/Configuration/PageTSConfig" extensions="tsconfig">
