@@ -1,4 +1,4 @@
-<f:render partial="Header" section="fullHeader" arguments="{title: data.title, mediaObj: media.0, pageUid: data.uid}"/>
+<f:render partial="Header" section="fullHeader" arguments="{title: data.title, mediaObj: media.0, pageUid: data.uid, menu: menu}"/>
 
 
 
@@ -10,6 +10,7 @@
     <f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 1}" />
 </div>
 
+
 <f:comment>
+    <f:debug>{_all}</f:debug>
 </f:comment>
-<f:debug>{_all}</f:debug>

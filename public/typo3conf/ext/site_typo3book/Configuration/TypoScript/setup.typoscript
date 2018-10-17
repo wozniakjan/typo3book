@@ -3,7 +3,7 @@
 # Default PAGE object:
 page = PAGE
 page {
-
+    meta.viewport = width=device-width, initial-scale=1, user-scalable=no
     includeCSS.main = EXT:site_typo3book/Resources/Public/Css/main.css
 
 

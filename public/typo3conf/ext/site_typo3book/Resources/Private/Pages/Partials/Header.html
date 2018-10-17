@@ -15,6 +15,25 @@
         </f:else>
     </f:if>
     {mediaObj.title}
+    <f:if condition="{menu}">
+        <ul>
+            <f:for each="{menu}" as="page">
+                <li>
+                    <f:link.page pageUid="{page.data.uid}">{page.title}</f:link.page>
+                    <f:if condition="{page.children}">
+                        <ul>
+                            <f:for each="{page.children}" as="child">
+                                <li>
+                                    <f:link.page pageUid="{child.data.uid}">{child.title}</f:link.page>
+                                </li>
+                            </f:for>
+                        </ul>
+                    </f:if>
+
+                </li>
+            </f:for>
+        </ul>
+    </f:if>
 
 </f:section>
 
