@@ -6,6 +6,7 @@ page.10 = FLUIDTEMPLATE
 page.10 {
 
     templateRootPaths.10 = EXT:site_typo3book/Resources/Private/Pages/Templates
+    partialRootPaths.10 = EXT:site_typo3book/Resources/Private/Pages/Partials
     templateName = TEXT
     templateName.data = pagelayout
     templateName.stdWrap.replacement {

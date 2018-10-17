@@ -1,0 +1,25 @@
+<f:section name="fullHeader">
+
+    <f:link.typolink parameter="{pageUid}">
+        <h1>{title}</h1>
+    </f:link.typolink>
+
+    <h2>yay</h2>
+
+    <f:if condition="{mediaObj.uid}">
+        <f:then>
+            <f:image src="{mediaObj.uid}" treatIdAsReference="1" maxWidth="300"></f:image>
+        </f:then>
+        <f:else>
+            no image provided!
+        </f:else>
+    </f:if>
+    {mediaObj.title}
+
+</f:section>
+
+<f:section name="simpleHeader">
+    <f:link.typolink parameter="{pageUid}">
+        <h1>{title}</h1>
+    </f:link.typolink>
+</f:section>
