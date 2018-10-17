@@ -1,3 +1,5 @@
+<INCLUDE_TYPOSCRIPT: source="FILE:EXT:fluid_styled_content/Configuration/TypoScript/setup.typoscript">
+
 # Default PAGE object:
 page = PAGE
 page.10 = FLUIDTEMPLATE
@@ -9,6 +11,15 @@ page.10 {
     templateName.stdWrap.replacement {
         10.search = pagets__
         10.replace =
+    }
+
+    dataProcessing.10 = TYPO3\CMS\Frontend\DataProcessing\FilesProcessor
+    dataProcessing.10 {
+        if.isTrue.field = media
+        references.fieldName = media
+        references.table = pages
+        sorting = sorting_foreign
+        as = media
     }
 
 }
@@ -24,5 +35,5 @@ lib.renderContent {
     }
 }
 
-
+# Display errors in frontend for development. Set to 1 to hide errors
 config.contentObjectExceptionHandler = 0

@@ -1,7 +1,8 @@
-<h1>This is a Start Page! woo!</h1>
+<h1>{data.title}</h1>
 
 <h2>yay</h2>
 
+<f:image src="{media.0.uid}" treatIdAsReference="1" maxWidth="300"></f:image>
 
 <div style="background: red">
     <f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 0}" />
@@ -10,3 +11,5 @@
 <div style="background: green">
     <f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 1}" />
 </div>
+
+<f:debug>{_all}</f:debug>
