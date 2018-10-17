@@ -11,6 +11,8 @@ page {
     includeJSFooter.util = EXT:site_typo3book/Resources/Public/JavaScript/util.js
     includeJSFooter.main = EXT:site_typo3book/Resources/Public/JavaScript/main.js
 
+    bodyTagAdd = class="is-preload"
+
     10 = FLUIDTEMPLATE
     10 {
 
