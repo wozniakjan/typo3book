@@ -5,7 +5,11 @@ page = PAGE
 page {
     meta.viewport = width=device-width, initial-scale=1, user-scalable=no
     includeCSS.main = EXT:site_typo3book/Resources/Public/Css/main.css
-
+    includeJSFooter.jquery = EXT:site_typo3book/Resources/Public/JavaScript/jquery.min.js
+    includeJSFooter.browser = EXT:site_typo3book/Resources/Public/JavaScript/browser.min.js
+    includeJSFooter.breakpoints = EXT:site_typo3book/Resources/Public/JavaScript/breakpoints.min.js
+    includeJSFooter.util = EXT:site_typo3book/Resources/Public/JavaScript/util.js
+    includeJSFooter.main = EXT:site_typo3book/Resources/Public/JavaScript/main.js
 
     10 = FLUIDTEMPLATE
     10 {
