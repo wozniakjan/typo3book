@@ -1,5 +1,5 @@
 <div id="wrapper">
-    <f:render partial="Header" arguments="{title: data.title, mediaObj: media.0, pageUid: data.uid, menu: menu}"/>
+    <f:render partial="Header" arguments="{menu: menu, homePageUid: homePageUid}"/>
 </div>
 
 <f:comment>
@@ -10,5 +10,4 @@
 <div style="background: green">
     <f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 1}" />
 </div>
-    <f:debug>{_all}</f:debug>
 </f:comment>

@@ -39,6 +39,11 @@ page {
         dataProcessing.20 {
             as = menu
         }
+
+        variables {
+            homePageUid = TEXT
+            homePageUid.value = {$pages.home}
+        }
     }
 
 }
