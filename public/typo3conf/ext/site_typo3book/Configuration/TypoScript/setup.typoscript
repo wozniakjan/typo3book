@@ -2,25 +2,38 @@
 
 # Default PAGE object:
 page = PAGE
-page.10 = FLUIDTEMPLATE
-page.10 {
+page {
 
-    templateRootPaths.10 = EXT:site_typo3book/Resources/Private/Pages/Templates
-    partialRootPaths.10 = EXT:site_typo3book/Resources/Private/Pages/Partials
-    templateName = TEXT
-    templateName.data = pagelayout
-    templateName.stdWrap.replacement {
-        10.search = pagets__
-        10.replace =
-    }
+    includeCSS.main = EXT:site_typo3book/Resources/Public/Css/main.css
 
-    dataProcessing.10 = TYPO3\CMS\Frontend\DataProcessing\FilesProcessor
-    dataProcessing.10 {
-        if.isTrue.field = media
-        references.fieldName = media
-        references.table = pages
-        sorting = sorting_foreign
-        as = media
+
+    10 = FLUIDTEMPLATE
+    10 {
+
+        templateRootPaths.10 = EXT:site_typo3book/Resources/Private/Pages/Templates
+        partialRootPaths.10 = EXT:site_typo3book/Resources/Private/Pages/Partials
+        templateName = TEXT
+        templateName.data = pagelayout
+        templateName.stdWrap.replacement {
+            10.search = pagets__
+            10.replace =
+        }
+
+
+
+        dataProcessing.10 = TYPO3\CMS\Frontend\DataProcessing\FilesProcessor
+        dataProcessing.10 {
+            if.isTrue.field = media
+            references.fieldName = media
+            references.table = pages
+            sorting = sorting_foreign
+            as = media
+        }
+        dataProcessing.20 = TYPO3\CMS\Frontend\DataProcessing\MenuProcessor
+        dataProcessing.20 {
+            as = menu
+            levels = 2
+        }
     }
 
 }
