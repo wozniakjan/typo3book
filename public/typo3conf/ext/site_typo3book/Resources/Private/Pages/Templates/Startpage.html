@@ -1,7 +1,8 @@
-<f:render partial="Header" section="fullHeader" arguments="{title: data.title, mediaObj: media.0, pageUid: data.uid, menu: menu}"/>
+<div id="wrapper">
+    <f:render partial="Header" arguments="{title: data.title, mediaObj: media.0, pageUid: data.uid, menu: menu}"/>
+</div>
 
-
-
+<f:comment>
 <div style="background: red">
     <f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 0}" />
 </div>
@@ -9,8 +10,5 @@
 <div style="background: green">
     <f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 1}" />
 </div>
-
-
-<f:comment>
     <f:debug>{_all}</f:debug>
 </f:comment>

@@ -1,5 +1,45 @@
-<f:section name="fullHeader">
+<header id="header">
+    <f:link.typolink parameter="{pageUid}">
+        <h1>{title}</h1>
+    </f:link.typolink>
+    <nav class="links">
+        <f:if condition="{menu}">
+            <ul>
+                <f:for each="{menu}" as="page">
+                    <li>
+                        <f:link.page pageUid="{page.data.uid}">{page.title}</f:link.page>
+                    </li>
+                </f:for>
+            </ul>
+        </f:if>
+    </nav>
+    <nav class="main">
+        <ul>
+            <li class="menu">
+                <a class="fa-bars" href="#menu">Menu</a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<section id="menu">
+    <section>
+        <f:if condition="{menu}">
+          <ul class="links">
+              <f:for each="{menu}" as="page">
+                  <li>
+                      <f:link.page pageUid="{page.data.uid}">
+                          <h3>{page.title}</h3>
+                          <p>{page.subtitle}</p>
+                      </f:link.page>
+                  </li>
+              </f:for>
+          </ul>
+        </f:if>
+    </section>
+</section>
 
+<f:comment>
+    <!-- manual set up futzing: -->
     <f:link.typolink parameter="{pageUid}">
         <h1>{title}</h1>
     </f:link.typolink>
@@ -34,11 +74,4 @@
             </f:for>
         </ul>
     </f:if>
-
-</f:section>
-
-<f:section name="simpleHeader">
-    <f:link.typolink parameter="{pageUid}">
-        <h1>{title}</h1>
-    </f:link.typolink>
-</f:section>
+</f:comment>

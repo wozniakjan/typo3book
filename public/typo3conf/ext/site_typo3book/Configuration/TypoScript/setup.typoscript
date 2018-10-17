@@ -38,7 +38,6 @@ page {
         dataProcessing.20 = TYPO3\CMS\Frontend\DataProcessing\MenuProcessor
         dataProcessing.20 {
             as = menu
-            levels = 2
         }
     }
 
