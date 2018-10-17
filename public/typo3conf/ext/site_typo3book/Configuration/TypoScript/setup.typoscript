@@ -1,7 +1,28 @@
 # Default PAGE object:
 page = PAGE
-page.10 = TEXT
-page.10.data = FIELD:title
-page.20 =< styles.content.get
+page.10 = FLUIDTEMPLATE
+page.10 {
 
-#page.10.data = FIELD:subtitle
+    templateRootPaths.10 = EXT:site_typo3book/Resources/Private/Pages/Templates
+    templateName = TEXT
+    templateName.data = pagelayout
+    templateName.stdWrap.replacement {
+        10.search = pagets__
+        10.replace =
+    }
+
+}
+
+#Usage: "<f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 0}" />"
+lib.renderContent = CONTENT
+lib.renderContent {
+    table = tt_content
+    select {
+        orderBy = sorting
+        where = colPos = {field:colPos}
+        where.insertData = 1
+    }
+}
+
+
+config.contentObjectExceptionHandler = 0
