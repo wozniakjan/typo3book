@@ -18,6 +18,7 @@ page {
 
         templateRootPaths.10 = EXT:site_typo3book/Resources/Private/Pages/Templates
         partialRootPaths.10 = EXT:site_typo3book/Resources/Private/Pages/Partials
+        layoutRootPaths.10 = EXT:site_typo3book/Resources/Private/Pages/Layouts
         templateName = TEXT
         templateName.data = pagelayout
         templateName.stdWrap.replacement {

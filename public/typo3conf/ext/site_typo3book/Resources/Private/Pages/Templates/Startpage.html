@@ -1,13 +1,24 @@
 <div id="wrapper">
     <f:render partial="Header" arguments="{menu: menu, homePageUid: homePageUid}"/>
-</div>
+    <div id="main">
+        <f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 0}" />
+    </div>
+    <section id="sidebar">
+        <section id="intro">
+            <f:link.typolink parameter="{homePageUid}">
+                <f:image src="EXT:site_typo3book/Resources/Public/Icons/Extension.svg" maxWidth="150"/>
+            </f:link.typolink>
+            <header>
+                <h2>{data.title}</h2>
+                <p>{data.subtitle}</p>
+            </header>
+        </section>
 
-<f:comment>
-<div style="background: red">
-    <f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 0}" />
+        <!-- Mini Posts -->
+        <section>
+            <div class="mini-posts">
+                <f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 1}" />
+            </div>
+        </section>
+    </section>
 </div>
-
-<div style="background: green">
-    <f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 1}" />
-</div>
-</f:comment>

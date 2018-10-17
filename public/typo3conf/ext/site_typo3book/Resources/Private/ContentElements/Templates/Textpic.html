@@ -1,0 +1,23 @@
+<article class="post">
+	<header>
+		<div class="title">
+			<h2>{data.header}</h2>
+			<p>{data.subheader}</p>
+		</div>
+		<div class="meta">
+			<time class="published">
+				<f:format.date format="d.m.Y">{data.date}</f:format.date>
+			</time>
+		</div>
+	</header>
+	<f:if condition="{gallery.position.vertical} != 'below'">
+		<f:render partial="Media/Gallery" arguments="{_all}" />
+	</f:if>
+	<f:format.raw>
+		{data.bodytext}
+	</f:format.raw>
+	<f:if condition="{gallery.position.vertical} == 'below'">
+		<f:render partial="Media/Gallery" arguments="{_all}" />
+	</f:if>
+
+</article>

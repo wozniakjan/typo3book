@@ -3,18 +3,19 @@ mod.web_layout.BackendLayouts {
         title = Startpage layout
         config {
             backend_layout {
-                colCount = 2
+                colCount = 3
                 rowCount = 1
                 rows {
                     1 {
                         columns {
                             1 {
-                                name = left
-                                colPos = 0
+                                name = sidebar
+                                colPos = 1
                             }
                             2 {
-                                name = right
-                                colPos = 1
+                                name = main content
+                                colspan = 2
+                                colPos = 0
                             }
                         }
                     }

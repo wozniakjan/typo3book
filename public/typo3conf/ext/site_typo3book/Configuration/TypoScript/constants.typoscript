@@ -1,5 +1,11 @@
 <INCLUDE_TYPOSCRIPT: source="FILE:EXT:fluid_styled_content/Configuration/TypoScript/constants.typoscript">
 
+styles.templates {
+    templateRootPath = EXT:site_typo3book/Resources/Private/ContentElements/Templates
+    partialRootPath = EXT:site_typo3book/Resources/Private/ContentElements/Partials
+    layoutRootPath = EXT:site_typo3book/Resources/Private/ContentElements/Layouts
+}
+
 pages {
     home = 1
 }
