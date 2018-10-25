@@ -2,7 +2,6 @@
 .idea
 nbproject
 /var
-/vendor
 /public/*
 !/public/typo3conf
 /public/typo3conf/*
