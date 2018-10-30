@@ -1,5 +1,5 @@
 rootPageId: 1
-base: typo3book.ddev.local
+base: /
 baseVariants: {  }
 languages:
   -
