@@ -4241,7 +4241,7 @@ class TypoScriptFrontendController implements LoggerAwareInterface
             'Retry-after' => '3600',
             'Pragma' => 'no-cache',
             'Cache-control' => 'no-cache',
-            'Expires' => 0,
+            'Expire' => 0,
         ];
     }
     /********************************************
