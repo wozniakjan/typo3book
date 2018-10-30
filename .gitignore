@@ -1,5 +1,6 @@
 .DS_Store
 .idea
 nbproject
+/var
 /public/typo3temp
 /public/fileadmin
