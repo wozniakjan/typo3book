@@ -20,6 +20,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\SignalSlot\Dispatcher;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Page\PageRepository;
+use TYPO3\CMS\Frontend\Utility\CanonicalizationUtility;
 
 /**
  * Class to add the canonical tag to the page
@@ -72,6 +73,10 @@ class CanonicalGenerator
         $href = '';
         $this->signalSlotDispatcher->dispatch(self::class, 'beforeGeneratingCanonical', [&$href]);
 
+        if (empty($href) && (int)$this->typoScriptFrontendController->page['no_index'] === 1) {
+            return '';
+        }
+
         if (empty($href)) {
             // 1) Check if page show content from other page
             $href = $this->checkContentFromPid();
@@ -87,9 +92,9 @@ class CanonicalGenerator
 
         if (!empty($href)) {
             $canonical = '<link ' . GeneralUtility::implodeAttributes([
-                'rel' => 'canonical',
-                'href' => $href
-            ], true) . '/>' . LF;
+                    'rel' => 'canonical',
+                    'href' => $href
+                ], true) . '/>' . LF;
             $this->typoScriptFrontendController->additionalHeaderData[] = $canonical;
             return $canonical;
         }
@@ -137,13 +142,19 @@ class CanonicalGenerator
     protected function checkDefaultCanonical(): string
     {
         return $this->typoScriptFrontendController->cObj->typoLink_URL([
-            'parameter' => $this->typoScriptFrontendController->page['uid'],
+            'parameter' => $this->typoScriptFrontendController->id . ',' . $this->typoScriptFrontendController->type,
             'forceAbsoluteUrl' => true,
             'addQueryString' => true,
             'addQueryString.' => [
-                'exclude' => 'type,no_cache'
-            ],
-            'useCacheHash' => true,
+                'method' => 'GET',
+                'exclude' => implode(
+                    ',',
+                    CanonicalizationUtility::getParamsToExcludeForCanonicalizedUrl(
+                        (int)$this->typoScriptFrontendController->id,
+                        (array)$GLOBALS['TYPO3_CONF_VARS']['FE']['additionalCanonicalizedUrlParameters']
+                    )
+                )
+            ]
         ]);
     }
 

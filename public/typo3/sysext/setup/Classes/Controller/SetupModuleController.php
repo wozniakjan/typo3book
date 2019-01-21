@@ -681,20 +681,23 @@ class SetupModuleController
         // Compile the languages dropdown
         $langDefault = htmlspecialchars($language->getLL('lang_default'));
         $languageOptions[$langDefault] = '<option value=""' . ($backendUser->uc['lang'] === '' ? ' selected="selected"' : '') . '>' . $langDefault . '</option>';
-        // Traverse the number of languages
-        $locales = GeneralUtility::makeInstance(Locales::class);
-        $languages = $locales->getLanguages();
-        foreach ($languages as $locale => $name) {
-            if ($locale !== 'default') {
-                $defaultName = isset($GLOBALS['LOCAL_LANG']['default']['lang_' . $locale]) ? $GLOBALS['LOCAL_LANG']['default']['lang_' . $locale][0]['source'] : $name;
-                $localizedName = htmlspecialchars($language->getLL('lang_' . $locale));
-                if ($localizedName === '') {
-                    $localizedName = htmlspecialchars($name);
-                }
-                $localLabel = '  -  [' . htmlspecialchars($defaultName) . ']';
-                $available = is_dir(Environment::getLegacyConfigPath() . '/l10n/' . $locale);
-                if ($available) {
-                    $languageOptions[$defaultName] = '<option value="' . $locale . '"' . ($backendUser->uc['lang'] === $locale ? ' selected="selected"' : '') . '>' . $localizedName . $localLabel . '</option>';
+        if (isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['lang']['availableLanguages'])) {
+            // Traverse the number of languages
+            $locales = GeneralUtility::makeInstance(Locales::class);
+            $languages = $locales->getLanguages();
+
+            foreach ($languages as $locale => $name) {
+                if ($locale !== 'default') {
+                    $defaultName = isset($GLOBALS['LOCAL_LANG']['default']['lang_' . $locale]) ? $GLOBALS['LOCAL_LANG']['default']['lang_' . $locale][0]['source'] : $name;
+                    $localizedName = htmlspecialchars($language->getLL('lang_' . $locale));
+                    if ($localizedName === '') {
+                        $localizedName = htmlspecialchars($name);
+                    }
+                    $localLabel = '  -  [' . htmlspecialchars($defaultName) . ']';
+                    $available = in_array($locale, $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['lang']['availableLanguages'], true) && is_dir(Environment::getLabelsPath() . '/' . $locale);
+                    if ($available) {
+                        $languageOptions[$defaultName] = '<option value="' . $locale . '"' . ($backendUser->uc['lang'] === $locale ? ' selected="selected"' : '') . '>' . $localizedName . $localLabel . '</option>';
+                    }
                 }
             }
         }
@@ -702,7 +705,7 @@ class SetupModuleController
         $languageCode = '
             <select id="field_lang" name="data[lang]" class="form-control">' . implode('', $languageOptions) . '
             </select>';
-        if ($backendUser->uc['lang'] && !@is_dir(Environment::getLegacyConfigPath() . '/l10n/' . $backendUser->uc['lang'])) {
+        if ($backendUser->uc['lang'] && !@is_dir(Environment::getLabelsPath() . '/' . $backendUser->uc['lang'])) {
             // TODO: The text constants have to be moved into language files
             $languageUnavailableWarning = 'The selected language "' . htmlspecialchars($language->getLL('lang_' . $backendUser->uc['lang'])) . '" is not available before the language files are installed.&nbsp;&nbsp;<br />&nbsp;&nbsp;' . ($backendUser->isAdmin() ? 'You can use the Language module to easily download new language files.' : 'Please ask your system administrator to do this.');
             $languageCode = '<br /><span class="label label-danger">' . $languageUnavailableWarning . '</span><br /><br />' . $languageCode;

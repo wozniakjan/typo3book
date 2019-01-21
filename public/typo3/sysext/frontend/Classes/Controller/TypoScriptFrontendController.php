@@ -1610,7 +1610,11 @@ class TypoScriptFrontendController implements LoggerAwareInterface
                     . 'mounts a page which is not accessible (ID ' . $this->originalMountPointPage['mount_pid'] . ').';
                 throw new PageNotFoundException($message, 1402043263);
             }
-            $this->MP = $this->page['uid'] . '-' . $this->originalMountPointPage['uid'];
+            if ($this->MP === '') {
+                $this->MP = $this->page['uid'] . '-' . $this->originalMountPointPage['uid'];
+            } else {
+                $this->MP .= ',' . $this->page['uid'] . '-' . $this->originalMountPointPage['uid'];
+            }
             $this->id = $this->page['uid'];
         }
         // Gets the rootLine
@@ -2251,7 +2255,7 @@ class TypoScriptFrontendController implements LoggerAwareInterface
         if ($this->cHash && is_array($GET)) {
             // Make sure we use the page uid and not the page alias
             $GET['id'] = $this->id;
-            $this->cHash_array = $this->cacheHash->getRelevantParameters(GeneralUtility::implodeArrayForUrl('', $GET));
+            $this->cHash_array = $this->cacheHash->getRelevantParameters(HttpUtility::buildQueryString($GET));
             $cHash_calc = $this->cacheHash->calculateCacheHash($this->cHash_array);
             if (!hash_equals($cHash_calc, $this->cHash)) {
                 if ($GLOBALS['TYPO3_CONF_VARS']['FE']['pageNotFoundOnCHashError']) {
@@ -2267,7 +2271,7 @@ class TypoScriptFrontendController implements LoggerAwareInterface
             }
         } elseif (is_array($GET)) {
             // No cHash is set, check if that is correct
-            if ($this->cacheHash->doParametersRequireCacheHash(GeneralUtility::implodeArrayForUrl('', $GET))) {
+            if ($this->cacheHash->doParametersRequireCacheHash(HttpUtility::buildQueryString($GET))) {
                 $this->reqCHash();
             }
         }
@@ -3080,7 +3084,7 @@ class TypoScriptFrontendController implements LoggerAwareInterface
                         // Error: This key must not be an array!
                         continue;
                     }
-                    $value = GeneralUtility::implodeArrayForUrl($parameterName, $value);
+                    $value = HttpUtility::buildQueryString([$parameterName => $value], '&');
                 }
                 $this->linkVars .= $value;
             }
@@ -3460,6 +3464,14 @@ class TypoScriptFrontendController implements LoggerAwareInterface
     public function addCacheTags(array $tags)
     {
         $this->pageCacheTags = array_merge($this->pageCacheTags, $tags);
+    }
+
+    /**
+     * @return array
+     */
+    public function getPageCacheTags(): array
+    {
+        return $this->pageCacheTags;
     }
 
     /********************************************
@@ -4029,7 +4041,7 @@ class TypoScriptFrontendController implements LoggerAwareInterface
         foreach ($additionalHeaders as $headerConfig) {
             list($header, $value) = GeneralUtility::trimExplode(':', $headerConfig['header'], false, 2);
             if ($headerConfig['statusCode']) {
-                $response = $response->withStatus($headerConfig['statusCode']);
+                $response = $response->withStatus((int)$headerConfig['statusCode']);
             }
             if ($headerConfig['replace']) {
                 $response = $response->withHeader($header, $value);
@@ -4141,7 +4153,7 @@ class TypoScriptFrontendController implements LoggerAwareInterface
             // User name:
             $token = isset($this->config['config']['USERNAME_substToken']) ? trim($this->config['config']['USERNAME_substToken']) : '';
             $search[] = $token ? $token : '<!--###USERNAME###-->';
-            $replace[] = $this->fe_user->user['username'];
+            $replace[] = htmlspecialchars($this->fe_user->user['username']);
             // User uid (if configured):
             $token = isset($this->config['config']['USERUID_substToken']) ? trim($this->config['config']['USERUID_substToken']) : '';
             if ($token) {
@@ -4241,7 +4253,7 @@ class TypoScriptFrontendController implements LoggerAwareInterface
             'Retry-after' => '3600',
             'Pragma' => 'no-cache',
             'Cache-control' => 'no-cache',
-            'Expire' => 0,
+            'Expires' => '0',
         ];
     }
     /********************************************
@@ -5137,6 +5149,7 @@ class TypoScriptFrontendController implements LoggerAwareInterface
             case 'no_cacheBeforePageGen':
             case 'tempContent':
             case 'pagesTSconfig':
+            case 'pageCacheTags':
             case 'uniqueCounter':
             case 'uniqueString':
             case 'lang':
@@ -5206,6 +5219,7 @@ class TypoScriptFrontendController implements LoggerAwareInterface
             case 'no_cacheBeforePageGen':
             case 'tempContent':
             case 'pagesTSconfig':
+            case 'pageCacheTags':
             case 'uniqueCounter':
             case 'uniqueString':
             case 'lang':
@@ -5348,6 +5362,7 @@ class TypoScriptFrontendController implements LoggerAwareInterface
             case 'no_cacheBeforePageGen':
             case 'tempContent':
             case 'pagesTSconfig':
+            case 'pageCacheTags':
             case 'uniqueCounter':
             case 'uniqueString':
             case 'lang':

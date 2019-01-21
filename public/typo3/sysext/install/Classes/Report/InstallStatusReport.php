@@ -18,7 +18,7 @@ use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Install\Service\Exception;
-use TYPO3\CMS\Install\Updates\UpgradeWizardInterface;
+use TYPO3\CMS\Install\Service\UpgradeWizardsService;
 use TYPO3\CMS\Reports\Status;
 
 /**
@@ -76,14 +76,17 @@ class InstallStatusReport implements \TYPO3\CMS\Reports\StatusProviderInterface
             $varPath . '/charset/' => 2,
             $varPath . '/lock/' => 2,
             $sitePath . '/typo3conf/' => 2,
-            Environment::getExtensionsPath() => 0,
             Environment::getLabelsPath() => 0,
             $sitePath . '/' . $GLOBALS['TYPO3_CONF_VARS']['BE']['fileadminDir'] => -1,
             $sitePath . '/' . $GLOBALS['TYPO3_CONF_VARS']['BE']['fileadminDir'] . '_temp_/' => 0,
         ];
 
-        if ($GLOBALS['TYPO3_CONF_VARS']['EXT']['allowGlobalInstall']) {
-            $checkWritable[Environment::getBackendPath() . '/ext/'] = -1;
+        // Check for writable extension folder files in non-composer mode only
+        if (!Environment::isComposerMode()) {
+            $checkWritable[Environment::getExtensionsPath()] = 0;
+            if ($GLOBALS['TYPO3_CONF_VARS']['EXT']['allowGlobalInstall']) {
+                $checkWritable[Environment::getBackendPath() . '/ext/'] = -1;
+            }
         }
 
         foreach ($checkWritable as $path => $requirementLevel) {
@@ -139,6 +142,27 @@ class InstallStatusReport implements \TYPO3\CMS\Reports\StatusProviderInterface
     }
 
     /**
+     * Returns all incomplete update wizards.
+     *
+     * Fetches all wizards that are not marked "done" in the registry and filters out
+     * the ones that should not be rendered (= no upgrade required).
+     *
+     * @return array
+     */
+    protected function getIncompleteWizards(): array
+    {
+        $upgradeWizardsService = GeneralUtility::makeInstance(UpgradeWizardsService::class);
+        $incompleteWizards = $upgradeWizardsService->getUpgradeWizardsList();
+        $incompleteWizards = array_filter(
+            $incompleteWizards,
+            function ($wizard) {
+                return $wizard['shouldRenderWizard'];
+            }
+        );
+        return $incompleteWizards;
+    }
+
+    /**
      * Checks if there are still updates to perform
      *
      * @return Status Represents whether the installation is completely updated yet
@@ -152,27 +176,13 @@ class InstallStatusReport implements \TYPO3\CMS\Reports\StatusProviderInterface
         /** @var \TYPO3\CMS\Backend\Routing\UriBuilder $uriBuilder */
         $uriBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Routing\UriBuilder::class);
         // check if there are update wizards left to perform
-        if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update'] ?? null)) {
-            $versionAsInt = \TYPO3\CMS\Core\Utility\VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version);
-            $incompleteWizardFound = false;
-            foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update'] as $identifier => $className) {
-                $updateObject = GeneralUtility::makeInstance($className, $identifier, $versionAsInt, null, $this);
-                if (method_exists($updateObject, 'shouldRenderWizard') && $updateObject->shouldRenderWizard()) {
-                    $incompleteWizardFound = true;
-                    break;
-                }
-                if ($updateObject instanceof UpgradeWizardInterface && $updateObject->updateNecessary()) {
-                    $incompleteWizardFound = true;
-                    break;
-                }
-            }
-            if ($incompleteWizardFound) {
-                // At least one incomplete wizard was found
-                $value = $languageService->getLL('status_updateIncomplete');
-                $severity = Status::WARNING;
-                $url = (string)$uriBuilder->buildUriFromRoute('tools_toolsupgrade');
-                $message = sprintf($languageService->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:warning.install_update'), '<a href="' . htmlspecialchars($url) . '">', '</a>');
-            }
+        $incompleteWizards = $this->getIncompleteWizards();
+        if (count($incompleteWizards)) {
+            // At least one incomplete wizard was found
+            $value = $languageService->getLL('status_updateIncomplete');
+            $severity = Status::WARNING;
+            $url = (string)$uriBuilder->buildUriFromRoute('tools_toolsupgrade');
+            $message = sprintf($languageService->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:warning.install_update'), '<a href="' . htmlspecialchars($url) . '">', '</a>');
         }
 
         return GeneralUtility::makeInstance(Status::class, $languageService->sL('LLL:EXT:install/Resources/Private/Language/Report/locallang.xlf:status_remainingUpdates'), $value, $message, $severity);

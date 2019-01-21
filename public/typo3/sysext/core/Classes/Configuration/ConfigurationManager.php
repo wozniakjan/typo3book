@@ -179,7 +179,7 @@ class ConfigurationManager
      */
     protected function getAdditionalFactoryConfigurationFileLocation()
     {
-        return Environment::getPublicPath() . '/' . $this->additionalFactoryConfigurationFile;
+        return Environment::getLegacyConfigPath() . '/' . $this->additionalFactoryConfigurationFile;
     }
 
     /**
@@ -393,7 +393,7 @@ class ConfigurationManager
     public function writeAdditionalConfiguration(array $additionalConfigurationLines)
     {
         return GeneralUtility::writeFile(
-            Environment::getPublicPath() . '/' . $this->additionalConfigurationFile,
+            $this->getAdditionalConfigurationFileLocation(),
             '<?php' . LF .
                 implode(LF, $additionalConfigurationLines) . LF
         );

@@ -24,6 +24,7 @@ use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\Expression\ExpressionBuilder;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\QueryHelper;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
@@ -52,7 +53,9 @@ use TYPO3\CMS\Core\TypoScript\Parser\TypoScriptParser;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\DebugUtility;
+use TYPO3\CMS\Core\Utility\Exception\MissingArrayPathException;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\HttpUtility;
 use TYPO3\CMS\Core\Utility\MailUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
@@ -5095,7 +5098,11 @@ class ContentObjectRenderer implements LoggerAwareInterface
                         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
                         $site = $request ? $request->getAttribute('site') : null;
                         if ($site instanceof Site) {
-                            $retVal = ArrayUtility::getValueByPath($site->getConfiguration(), $key, '.');
+                            try {
+                                $retVal = ArrayUtility::getValueByPath($site->getConfiguration(), $key, '.');
+                            } catch (MissingArrayPathException $exception) {
+                                $this->logger->warning(sprintf('getData() with "%s" failed', $key), ['exception' => $exception]);
+                            }
                         }
                         break;
                 }
@@ -5564,7 +5571,7 @@ class ContentObjectRenderer implements LoggerAwareInterface
         }
         if (is_array($urlParameters)) {
             if (!empty($urlParameters)) {
-                $conf['additionalParams'] .= GeneralUtility::implodeArrayForUrl('', $urlParameters);
+                $conf['additionalParams'] .= HttpUtility::buildQueryString($urlParameters, '&');
             }
         } else {
             $conf['additionalParams'] .= $urlParameters;
@@ -5731,14 +5738,13 @@ class ContentObjectRenderer implements LoggerAwareInterface
      * @param mixed  $type - either "ascii" or a number between -10 and 10, taken from config.spamProtectEmailAddresses
      * @return string encoded version of $string
      */
-    protected function encryptEmail($string, $type)
+    protected function encryptEmail(string $string, $type): string
     {
         $out = '';
         // obfuscates using the decimal HTML entity references for each character
         if ($type === 'ascii') {
-            $stringLength = strlen($string);
-            for ($a = 0; $a < $stringLength; $a++) {
-                $out .= '&#' . ord(substr($string, $a, 1)) . ';';
+            foreach (preg_split('//u', $string, -1, PREG_SPLIT_NO_EMPTY) as $char) {
+                $out .= '&#' . mb_ord($char) . ';';
             }
         } else {
             // like str_rot13() but with a variable offset and a wider character range
@@ -5770,14 +5776,13 @@ class ContentObjectRenderer implements LoggerAwareInterface
      * @param mixed  $type - either "ascii" or a number between -10 and 10 taken from config.spamProtectEmailAddresses
      * @return string decoded version of $string
      */
-    protected function decryptEmail($string, $type)
+    protected function decryptEmail(string $string, $type): string
     {
         $out = '';
         // obfuscates using the decimal HTML entity references for each character
         if ($type === 'ascii') {
-            $stringLength = strlen($string);
-            for ($a = 0; $a < $stringLength; $a++) {
-                $out .= '&#' . ord(substr($string, $a, 1)) . ';';
+            foreach (preg_split('//u', $string, -1, PREG_SPLIT_NO_EMPTY) as $char) {
+                $out .= '&#' . mb_ord($char) . ';';
             }
         } else {
             // like str_rot13() but with a variable offset and a wider character range
@@ -5865,7 +5870,7 @@ class ContentObjectRenderer implements LoggerAwareInterface
             $newQueryArray = $currentQueryArray;
         }
         ArrayUtility::mergeRecursiveWithOverrule($newQueryArray, $overruleQueryArguments, $forceOverruleArguments);
-        return GeneralUtility::implodeArrayForUrl('', $newQueryArray, '', false, true);
+        return HttpUtility::buildQueryString($newQueryArray, '&');
     }
 
     /***********************************************
@@ -6305,7 +6310,9 @@ class ContentObjectRenderer implements LoggerAwareInterface
                     $queryBuilder->expr()->eq(
                         'pid',
                         $queryBuilder->createNamedParameter($id, \PDO::PARAM_INT)
-                    )
+                    ),
+                    // tree is only built by language=0 pages
+                    $queryBuilder->expr()->eq('sys_language_uid', 0)
                 )
                 ->orderBy('sorting');
 
@@ -6413,15 +6420,21 @@ class ContentObjectRenderer implements LoggerAwareInterface
                     $theList[] = $addId;
                 }
             }
-            GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable('cache_treelist')->insert(
-                'cache_treelist',
-                [
-                    'md5hash' => $requestHash,
-                    'pid' => $id,
-                    'treelist' => implode(',', $theList),
-                    'tstamp' => $GLOBALS['EXEC_TIME']
-                ]
-            );
+
+            $cacheEntry = [
+                'md5hash' => $requestHash,
+                'pid' => $id,
+                'treelist' => implode(',', $theList),
+                'tstamp' => $GLOBALS['EXEC_TIME'],
+            ];
+
+            $connection = GeneralUtility::makeInstance(ConnectionPool::class)->getConnectionForTable('cache_treelist');
+            try {
+                $connection->transactional(function ($connection) use ($cacheEntry) {
+                    $connection->insert('cache_treelist', $cacheEntry);
+                });
+            } catch (\Throwable $e) {
+            }
         }
 
         return implode(',', $theList);
@@ -6900,42 +6913,11 @@ class ContentObjectRenderer implements LoggerAwareInterface
             $constraints[] = QueryHelper::stripLogicalOperatorPrefix($where);
         }
 
-        // Check if the table is translatable, and set the language field by default from the TCA information
-        $languageField = '';
-        if (!empty($conf['languageField']) || !isset($conf['languageField'])) {
-            if (isset($conf['languageField']) && !empty($GLOBALS['TCA'][$table]['columns'][$conf['languageField']])) {
-                $languageField = $conf['languageField'];
-            } elseif (!empty($GLOBALS['TCA'][$table]['ctrl']['languageField']) && !empty($GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'])) {
-                $languageField = $table . '.' . $GLOBALS['TCA'][$table]['ctrl']['languageField'];
-            }
-        }
-
-        if (!empty($languageField)) {
-            // The sys_language record UID of the content of the page
-            /** @var LanguageAspect $languageAspect */
-            $languageAspect = GeneralUtility::makeInstance(Context::class)->getAspect('language');
-
-            if ($languageAspect->doOverlays() && !empty($GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'])) {
-                // Sys language content is set to zero/-1 - and it is expected that whatever routine processes the output will
-                // OVERLAY the records with localized versions!
-                $languageQuery = $expressionBuilder->in($languageField, [0, -1]);
-                // Use this option to include records that don't have a default translation
-                // (originalpointerfield is 0 and the language field contains the requested language)
-                $includeRecordsWithoutDefaultTranslation = isset($conf['includeRecordsWithoutDefaultTranslation.']) ?
-                    $this->stdWrap($conf['includeRecordsWithoutDefaultTranslation'], $conf['includeRecordsWithoutDefaultTranslation.']) : $conf['includeRecordsWithoutDefaultTranslation'];
-                if (trim($includeRecordsWithoutDefaultTranslation) !== '') {
-                    $languageQuery = $expressionBuilder->orX(
-                        $languageQuery,
-                        $expressionBuilder->andX(
-                            $expressionBuilder->eq($GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'], 0),
-                            $expressionBuilder->eq($languageField, $languageAspect->getContentId())
-                        )
-                    );
-                }
-            } else {
-                $languageQuery = $expressionBuilder->eq($languageField, $languageAspect->getContentId());
-            }
-            $constraints[] = $languageQuery;
+        // Check if the default language should be fetched (= doing overlays), or if only the records of a language should be fetched
+        // but only do this for TCA tables that have languages enabled
+        $languageConstraint = $this->getLanguageRestriction($expressionBuilder, $table, $conf, GeneralUtility::makeInstance(Context::class));
+        if ($languageConstraint !== null) {
+            $constraints[] = $languageConstraint;
         }
 
         // Enablefields
@@ -6969,6 +6951,81 @@ class ContentObjectRenderer implements LoggerAwareInterface
 
         // Return result:
         return $queryParts;
+    }
+
+    /**
+     * Adds parts to the WHERE clause that are related to language.
+     * This only works on TCA tables which have the [ctrl][languageField] field set or if they
+     * have select.languageField = my_language_field set explicitly.
+     *
+     * It is also possible to disable the language restriction for a query by using select.languageField = 0,
+     * if select.languageField is not explicitly set, the TCA default values are taken.
+     *
+     * If the table is "localizeable" (= any of the criteria above is met), then the DB query is restricted:
+     *
+     * If the current language aspect has overlays enabled, then the only records with language "0" or "-1" are
+     * fetched (the overlays are taken care of later-on).
+     * if the current language has overlays but also records without localization-parent (free mode) available,
+     * then these are fetched as well. This can explicitly set via select.includeRecordsWithoutDefaultTranslation = 1
+     * which overrules the overlayType within the language aspect.
+     *
+     * If the language aspect has NO overlays enabled, it behaves as in "free mode" (= only fetch the records
+     * for the current language.
+     *
+     * @param ExpressionBuilder $expressionBuilder
+     * @param string $table
+     * @param array $conf
+     * @param Context $context
+     * @return string|\TYPO3\CMS\Core\Database\Query\Expression\CompositeExpression|null
+     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
+     */
+    protected function getLanguageRestriction(ExpressionBuilder $expressionBuilder, string $table, array $conf, Context $context)
+    {
+        $languageField = '';
+        $localizationParentField = $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'] ?? null;
+        // Check if the table is translatable, and set the language field by default from the TCA information
+        if (!empty($conf['languageField']) || !isset($conf['languageField'])) {
+            if (isset($conf['languageField']) && !empty($GLOBALS['TCA'][$table]['columns'][$conf['languageField']])) {
+                $languageField = $conf['languageField'];
+            } elseif (!empty($GLOBALS['TCA'][$table]['ctrl']['languageField']) && !empty($localizationParentField)) {
+                $languageField = $table . '.' . $GLOBALS['TCA'][$table]['ctrl']['languageField'];
+            }
+        }
+
+        // No language restriction enabled explicitly or available via TCA
+        if (empty($languageField)) {
+            return null;
+        }
+
+        /** @var LanguageAspect $languageAspect */
+        $languageAspect = $context->getAspect('language');
+        if ($languageAspect->doOverlays() && !empty($localizationParentField)) {
+            // Sys language content is set to zero/-1 - and it is expected that whatever routine processes the output will
+            // OVERLAY the records with localized versions!
+            $languageQuery = $expressionBuilder->in($languageField, [0, -1]);
+            // Use this option to include records that don't have a default translation ("free mode")
+            // (originalpointerfield is 0 and the language field contains the requested language)
+            if (isset($conf['includeRecordsWithoutDefaultTranslation']) || $conf['includeRecordsWithoutDefaultTranslation.']) {
+                $includeRecordsWithoutDefaultTranslation = isset($conf['includeRecordsWithoutDefaultTranslation.']) ?
+                    $this->stdWrap($conf['includeRecordsWithoutDefaultTranslation'], $conf['includeRecordsWithoutDefaultTranslation.']) : $conf['includeRecordsWithoutDefaultTranslation'];
+                $includeRecordsWithoutDefaultTranslation = trim($includeRecordsWithoutDefaultTranslation) !== '';
+            } else {
+                // Option was not explicitly set, check what's in for the language overlay type.
+                $includeRecordsWithoutDefaultTranslation = $languageAspect->getOverlayType() === $languageAspect::OVERLAYS_ON_WITH_FLOATING;
+            }
+            if ($includeRecordsWithoutDefaultTranslation) {
+                $languageQuery = $expressionBuilder->orX(
+                    $languageQuery,
+                    $expressionBuilder->andX(
+                        $expressionBuilder->eq($localizationParentField, 0),
+                        $expressionBuilder->eq($languageField, $languageAspect->getContentId())
+                    )
+                );
+            }
+            return $languageQuery;
+        }
+        // No overlays = only fetch records given for the requested language
+        return $expressionBuilder->eq($languageField, $languageAspect->getContentId());
     }
 
     /**

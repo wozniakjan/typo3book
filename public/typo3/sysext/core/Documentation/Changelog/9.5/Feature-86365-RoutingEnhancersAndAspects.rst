@@ -34,7 +34,7 @@ which is added by the curly braces can then be statically or dynamically resolve
 commonly known a Mapper.
 
 Enhancers and aspects are activated and configured in a site configuration, currently possible by modifying the
-site's :file:`config.yml` and adding the :yaml:`routeEnhancers` section manually, as there is no UI available for
+site's :file:`config.yaml` and adding the :yaml:`routeEnhancers` section manually, as there is no UI available for
 this configuration. See examples below.
 
 It is possible to use the same enhancers multiple times with different configurations, however, be aware that
@@ -194,6 +194,9 @@ And generate the following URLs
 
 In this example, you also see that the `_arguments` parameter can be used to bring them into sub properties of an array,
 which is typically the case within demand objects for filtering functionality.
+
+For the Extbase Plugin Enhancer, it is also possible to configure the namespace directly by skipping `extension`
+and `plugin` properties and just using the `namespace` property as in the regular Plugin Enhancer.
 
 Aspects
 ^^^^^^^
@@ -359,8 +362,8 @@ and to explicitly define a range for a value, which is recommended for all kinds
        aspects:
          page:
            type: StaticRangeMapper
-           start: 1
-           end: 100
+           start: '1'
+           end: '100'
 
 This limits down the pagination to max. 100 pages, if a user calls the news list with page 101, then the route enhancer
 does not match and would not apply the placeholder.

@@ -47,6 +47,7 @@ use TYPO3\CMS\Core\Database\ReferenceIndex;
 use TYPO3\CMS\Core\Database\RelationHandler;
 use TYPO3\CMS\Core\DataHandling\History\RecordHistoryStore;
 use TYPO3\CMS\Core\DataHandling\Localization\DataMapProcessor;
+use TYPO3\CMS\Core\DataHandling\Model\RecordStateFactory;
 use TYPO3\CMS\Core\Html\RteHtmlParser;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
@@ -1976,9 +1977,6 @@ class DataHandler implements LoggerAwareInterface
             $value = $helper->sanitize($value);
         }
 
-        $languageId = (int)$fullRecord[$GLOBALS['TCA'][$table]['ctrl']['languageField']];
-        $evalCodesArray = GeneralUtility::trimExplode(',', $tcaFieldConf['eval'], true);
-
         // In case a workspace is given, and the $realPid(!) still is negative
         // this is most probably triggered by versionizeRecord() and a raw record
         // copy - thus, uniqueness cannot be determined without having the
@@ -1990,11 +1988,19 @@ class DataHandler implements LoggerAwareInterface
             return ['value' => $value];
         }
 
+        // Return directly in case no evaluations are defined
+        if (empty($tcaFieldConf['eval'])) {
+            return ['value' => $value];
+        }
+
+        $state = RecordStateFactory::forName($table)
+            ->fromArray($fullRecord, $realPid, $id);
+        $evalCodesArray = GeneralUtility::trimExplode(',', $tcaFieldConf['eval'], true);
         if (in_array('uniqueInSite', $evalCodesArray, true)) {
-            $value = $helper->buildSlugForUniqueInSite($value, $id, $realPid, $languageId);
+            $value = $helper->buildSlugForUniqueInSite($value, $state);
         }
         if (in_array('uniqueInPid', $evalCodesArray, true)) {
-            $value = $helper->buildSlugForUniqueInPid($value, $id, $realPid, $languageId);
+            $value = $helper->buildSlugForUniqueInPid($value, $state);
         }
 
         return ['value' => $value];
@@ -2759,24 +2765,35 @@ class DataHandler implements LoggerAwareInterface
      */
     public function getUnique($table, $field, $value, $id, $newPid = 0)
     {
-        // If the field is configured in TCA, proceed:
-        if (is_array($GLOBALS['TCA'][$table]) && is_array($GLOBALS['TCA'][$table]['columns'][$field])) {
-            $newValue = $value;
-            $statement = $this->getUniqueCountStatement($newValue, $table, $field, (int)$id, (int)$newPid);
-            // For as long as records with the test-value existing, try again (with incremented numbers appended)
-            if ($statement->fetchColumn()) {
-                for ($counter = 0; $counter <= 100; $counter++) {
-                    $newValue = $value . $counter;
-                    $statement->bindValue(1, $newValue);
-                    $statement->execute();
-                    if (!$statement->fetchColumn()) {
-                        break;
-                    }
+        if (!is_array($GLOBALS['TCA'][$table]) || !is_array($GLOBALS['TCA'][$table]['columns'][$field])) {
+            // Field is not configured in TCA
+            return $value;
+        }
+
+        if ((string)$GLOBALS['TCA'][$table]['columns'][$field]['l10n_mode'] === 'exclude') {
+            $transOrigPointerField = $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'];
+            $l10nParent = (int)$this->checkValue_currentRecord[$transOrigPointerField];
+            if ($l10nParent > 0) {
+                // Current record is a translation and l10n_mode "exclude" just copies the value from source language
+                return $value;
+            }
+        }
+
+        $newValue = $value;
+        $statement = $this->getUniqueCountStatement($newValue, $table, $field, (int)$id, (int)$newPid);
+        // For as long as records with the test-value existing, try again (with incremented numbers appended)
+        if ($statement->fetchColumn()) {
+            for ($counter = 0; $counter <= 100; $counter++) {
+                $newValue = $value . $counter;
+                $statement->bindValue(1, $newValue);
+                $statement->execute();
+                if (!$statement->fetchColumn()) {
+                    break;
                 }
             }
-            $value = $newValue;
         }
-        return $value;
+
+        return $newValue;
     }
 
     /**
@@ -4900,7 +4917,6 @@ class DataHandler implements LoggerAwareInterface
 
         // Initialize:
         $overrideValues = [];
-        $excludeFields = [];
         // Set override values:
         $overrideValues[$GLOBALS['TCA'][$table]['ctrl']['languageField']] = $langRec['uid'];
         // If the translated record is a default language record, set it's uid as localization parent of the new record.
@@ -4946,14 +4962,6 @@ class DataHandler implements LoggerAwareInterface
                         $overrideValues[$fN] = $row[$fN];
                     }
                 }
-            } elseif (
-                ($fCfg['l10n_mode'] === 'exclude')
-                    && $fN != $GLOBALS['TCA'][$table]['ctrl']['languageField']
-                    && $fN != $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField']
-            ) {
-                // Otherwise, do not copy field (unless it is the language field or
-                // pointer to the original language)
-                $excludeFields[] = $fN;
             }
         }
 
@@ -4961,7 +4969,7 @@ class DataHandler implements LoggerAwareInterface
             // Get the uid of record after which this localized record should be inserted
             $previousUid = $this->getPreviousLocalizedRecordUid($table, $uid, $row['pid'], $language);
             // Execute the copy:
-            $newId = $this->copyRecord($table, $uid, -$previousUid, true, $overrideValues, implode(',', $excludeFields), $language);
+            $newId = $this->copyRecord($table, $uid, -$previousUid, true, $overrideValues, '', $language);
             $autoVersionNewId = $this->getAutoVersionId($table, $newId);
             if ($autoVersionNewId !== null) {
                 $this->triggerRemapAction($table, $newId, [$this, 'placeholderShadowing'], [$table, $autoVersionNewId], true);
@@ -6531,7 +6539,7 @@ class DataHandler implements LoggerAwareInterface
                 $fieldConf = $GLOBALS['TCA'][$table]['columns'][$field]['config'];
                 if ($registerDBList[$table][$id][$field] && ($foreignTable = $fieldConf['foreign_table'])) {
                     $newValueArray = [];
-                    $origValueArray = explode(',', $value);
+                    $origValueArray = is_array($value) ? $value : explode(',', $value);
                     // Update the uids of the copied records, but also take care about new records:
                     foreach ($origValueArray as $childId) {
                         $newValueArray[] = $this->autoVersionIdMap[$foreignTable][$childId] ? $this->autoVersionIdMap[$foreignTable][$childId] : $childId;
@@ -7141,7 +7149,7 @@ class DataHandler implements LoggerAwareInterface
             return [
                 'header' => BackendUtility::getRecordTitle($table, $row),
                 'pid' => $row['pid'],
-                'event_pid' => $this->eventPid($table, $row['_ORIG_pid'] ?? $row['uid'], $row['pid']),
+                'event_pid' => $this->eventPid($table, isset($row['_ORIG_pid']) ? $row['t3ver_oid'] : $row['uid'], $row['pid']),
                 't3ver_state' => $GLOBALS['TCA'][$table]['ctrl']['versioningWS'] ? $row['t3ver_state'] : '',
                 '_ORIG_pid' => $row['_ORIG_pid']
             ];
@@ -7436,6 +7444,7 @@ class DataHandler implements LoggerAwareInterface
             RecordHistoryStore::USER_BACKEND,
             $this->BE_USER->user['uid'],
             $this->BE_USER->user['ses_backuserid'] ?? null,
+            $GLOBALS['EXEC_TIME'],
             $this->BE_USER->workspace
         );
     }

@@ -26,7 +26,6 @@ use Helhum\Typo3Console\Mvc\Cli\Symfony\Application;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
 use TYPO3\CMS\Core\Core\Bootstrap;
-use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Package\PackageManager;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -98,13 +97,11 @@ class Kernel
      */
     public static function initializeCompatibilityLayer(ClassLoader $classLoader)
     {
-        $typo3Branch = '92';
+        $typo3Branch = '95';
         if (method_exists(Bootstrap::class, 'setCacheHashOptions')) {
             $typo3Branch = '87';
-        } elseif (!class_exists(Environment::class)) {
-            $typo3Branch = '91';
         }
-        if ($typo3Branch === '92') {
+        if ($typo3Branch === '95') {
             return;
         }
         $classLoader = self::$nonComposerCompatClassLoader ?? $classLoader;
@@ -179,7 +176,7 @@ class Kernel
      */
     public function terminate(int $exitCode = 0)
     {
-        if ($exitCode > 255) {
+        if ($exitCode > 255 || ($exitCode === 0 && $this->runLevel->getError())) {
             $exitCode = 255;
         }
         exit($exitCode);

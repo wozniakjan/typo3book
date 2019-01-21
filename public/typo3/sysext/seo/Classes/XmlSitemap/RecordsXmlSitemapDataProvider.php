@@ -64,6 +64,18 @@ class RecordsXmlSitemapDataProvider extends AbstractXmlSitemapDataProvider
         $constraints = [];
 
         if (!empty($pids)) {
+            $recursiveLevel = isset($this->config['recursive']) ? (int)$this->config['recursive'] : 0;
+            if ($recursiveLevel) {
+                $newList = [];
+                foreach ($pids as $pid) {
+                    $list = $this->cObj->getTreeList($pid, $recursiveLevel);
+                    if ($list) {
+                        $newList = array_merge($newList, explode(',', $list));
+                    }
+                }
+                $pids = array_merge($pids, $newList);
+            }
+
             $constraints[] = $queryBuilder->expr()->in('pid', $pids);
         }
 
@@ -101,7 +113,7 @@ class RecordsXmlSitemapDataProvider extends AbstractXmlSitemapDataProvider
         $pageId = $this->config['url']['pageId'] ?? $GLOBALS['TSFE']->id;
         $additionalParams = [];
 
-        $additionalParams = $this->getUrlFieldParameterMap($additionalParams, $data);
+        $additionalParams = $this->getUrlFieldParameterMap($additionalParams, $data['data']);
         $additionalParams = $this->getUrlAdditionalParams($additionalParams);
 
         $additionalParamsString = http_build_query(

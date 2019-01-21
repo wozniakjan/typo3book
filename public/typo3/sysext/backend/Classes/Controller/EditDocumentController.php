@@ -925,10 +925,7 @@ class EditDocumentController
         $this->perms_clause = $beUser->getPagePermsClause(Permission::PAGE_SHOW);
         // Set other internal variables:
         $this->R_URL_getvars['returnUrl'] = $this->retUrl;
-        $this->R_URI = $this->R_URL_parts['path'] . '?' . ltrim(GeneralUtility::implodeArrayForUrl(
-            '',
-            $this->R_URL_getvars
-        ), '&');
+        $this->R_URI = $this->R_URL_parts['path'] . HttpUtility::buildQueryString($this->R_URL_getvars, '?');
 
         // @deprecated since TYPO3 v9, will be removed in TYPO3 v10.0, unused
         $this->MCONF['name'] = 'xMOD_alt_doc.php';
@@ -1030,7 +1027,10 @@ class EditDocumentController
                 // use parent record
                 $recordId = $recordArray[$l18nPointer];
             }
-            $linkParameters['L'] = $recordArray[$languageField];
+            $language = $recordArray[$languageField];
+            if ($language > 0) {
+                $linkParameters['L'] = $language;
+            }
         }
 
         // map record data to GET parameters
@@ -1056,14 +1056,14 @@ class EditDocumentController
 
         if (!empty($previewConfiguration['useCacheHash'])) {
             $cacheHashCalculator = GeneralUtility::makeInstance(CacheHashCalculator::class);
-            $fullLinkParameters = GeneralUtility::implodeArrayForUrl('', array_merge($linkParameters, ['id' => $previewPageId]));
+            $fullLinkParameters = HttpUtility::buildQueryString(array_merge($linkParameters, ['id' => $previewPageId]), '&');
             $cacheHashParameters = $cacheHashCalculator->getRelevantParameters($fullLinkParameters);
             $linkParameters['cHash'] = $cacheHashCalculator->calculateCacheHash($cacheHashParameters);
         } else {
             $linkParameters['no_cache'] = 1;
         }
 
-        return GeneralUtility::implodeArrayForUrl('', $linkParameters, '', false, true);
+        return HttpUtility::buildQueryString($linkParameters, '&');
     }
 
     /**
@@ -2313,10 +2313,19 @@ class EditDocumentController
                                 $addOption = false;
                             }
                         } else {
-                            $href = (string)$uriBuilder->buildUriFromRoute('record_edit', [
+                            $params = [
                                 'edit[' . $table . '][' . $rowsByLang[$languageId]['uid'] . ']' => 'edit',
                                 'returnUrl' => $this->retUrl
-                            ]);
+                            ];
+                            if ($table === 'pages') {
+                                // Disallow manual adjustment of the language field for pages
+                                $params['overrideVals'] = [
+                                    'pages' => [
+                                        'sys_language_uid' => $languageId
+                                    ]
+                                ];
+                            }
+                            $href = (string)$uriBuilder->buildUriFromRoute('record_edit', $params);
                         }
                         if ($addOption) {
                             $menuItem = $languageMenu->makeMenuItem()
@@ -2455,9 +2464,15 @@ class EditDocumentController
                     )
                 )
                 ->execute();
-            $availableLanguages = [
-                0 => $allLanguages[0]
-            ];
+
+            $availableLanguages = [];
+
+            if ($allLanguages[0] ?? false) {
+                $availableLanguages = [
+                    0 => $allLanguages[0]
+                ];
+            }
+
             while ($row = $statement->fetch()) {
                 $languageId = (int)$row[$GLOBALS['TCA']['pages']['ctrl']['languageField']];
                 if (isset($allLanguages[$languageId])) {
@@ -2580,7 +2595,7 @@ class EditDocumentController
             'edit,defVals,overrideVals,columnsOnly,noView,workspace',
             $this->R_URL_getvars
         );
-        $this->storeUrl = GeneralUtility::implodeArrayForUrl('', $this->storeArray);
+        $this->storeUrl = HttpUtility::buildQueryString($this->storeArray, '&');
         $this->storeUrlMd5 = md5($this->storeUrl);
     }
 

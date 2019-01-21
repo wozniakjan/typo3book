@@ -52,6 +52,7 @@ use TYPO3\CMS\Core\TypoScript\Parser\TypoScriptParser;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\HttpUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Core\Versioning\VersionState;
@@ -392,43 +393,39 @@ class BackendUtility
                     break;
                 }
             }
+            $fields = [
+                'uid',
+                'pid',
+                'title',
+                'doktype',
+                'slug',
+                'tsconfig_includes',
+                'TSconfig',
+                'is_siteroot',
+                't3ver_oid',
+                't3ver_wsid',
+                't3ver_state',
+                't3ver_stage',
+                'backend_layout_next_level',
+                'hidden',
+                'starttime',
+                'endtime',
+                'fe_group',
+                'nav_hide',
+                'content_from_pid',
+                'module',
+                'extendToSubpages'
+            ];
+            $fields = array_merge($fields, $additionalFields);
+            $rootPage = array_fill_keys($fields, null);
             if ($uid == 0) {
-                $theRowArray[] = [
-                    'uid' => 0,
-                    'pid' => null,
-                    'title' => '',
-                    'doktype' => null,
-                    'slug' => null,
-                    'tsconfig_includes' => null,
-                    'TSconfig' => null,
-                    'is_siteroot' => null,
-                    't3ver_oid' => null,
-                    't3ver_wsid' => null,
-                    't3ver_state' => null,
-                    't3ver_stage' => null,
-                    'backend_layout_next_level' => null
-                ];
+                $rootPage['uid'] = 0;
+                $theRowArray[] = $rootPage;
             }
             $c = count($theRowArray);
             foreach ($theRowArray as $val) {
                 $c--;
-                $fields = [
-                    'uid',
-                    'pid',
-                    'title',
-                    'doktype',
-                    'slug',
-                    'tsconfig_includes',
-                    'TSconfig',
-                    'is_siteroot',
-                    't3ver_oid',
-                    't3ver_wsid',
-                    't3ver_state',
-                    't3ver_stage',
-                    'backend_layout_next_level',
-                ];
-                $fields = array_merge($fields, $additionalFields);
-                $output[$c] = array_intersect_key($val, array_combine($fields, $fields));
+                $output[$c] = array_intersect_key($val, $rootPage);
                 if (isset($val['_ORIG_pid'])) {
                     $output[$c]['_ORIG_pid'] = $val['_ORIG_pid'];
                 }
@@ -477,6 +474,14 @@ class BackendUtility
                     't3ver_state',
                     't3ver_stage',
                     'backend_layout_next_level',
+                    'hidden',
+                    'starttime',
+                    'endtime',
+                    'fe_group',
+                    'nav_hide',
+                    'content_from_pid',
+                    'module',
+                    'extendToSubpages',
                     ...$additionalFields
                 )
                 ->from('pages')
@@ -1269,7 +1274,7 @@ class BackendUtility
         $relationHandler->start(
             $element[$fieldName],
             $configuration['foreign_table'],
-            $configuration['MM'],
+            $configuration['MM'] ?? '',
             $element['uid'],
             $tableName,
             $configuration
@@ -1488,6 +1493,10 @@ class BackendUtility
         $lang = static::getLanguageService();
         $parts = [];
         $parts[] = 'id=' . $row['uid'];
+        if ($row['uid'] === 0) {
+            $out = htmlspecialchars($parts[0]);
+            return $includeAttrib ? 'title="' . $out . '"' : $out;
+        }
         if ($row['alias']) {
             $parts[] = $lang->sL($GLOBALS['TCA']['pages']['columns']['alias']['label']) . ' ' . $row['alias'];
         }
@@ -3084,7 +3093,7 @@ class BackendUtility
      * @param mixed $mainParams $id is the "&id=" parameter value to be sent to the module, but it can be also a parameter array which will be passed instead of the &id=...
      * @param string $addParams Additional parameters to pass to the script.
      * @param string $script The script to send the &id to, if empty it's automatically found
-     * @return string The completes script URL
+     * @return string The complete script URL
      */
     protected static function buildScriptUrl($mainParams, $addParams, $script = '')
     {
@@ -3100,7 +3109,7 @@ class BackendUtility
             $scriptUrl = (string)$uriBuilder->buildUriFromRoutePath($routePath, $mainParams);
             $scriptUrl .= $addParams;
         } else {
-            $scriptUrl = $script . '?' . GeneralUtility::implodeArrayForUrl('', $mainParams) . $addParams;
+            $scriptUrl = $script . HttpUtility::buildQueryString($mainParams, '?') . $addParams;
         }
 
         return $scriptUrl;
@@ -3986,7 +3995,7 @@ class BackendUtility
             }
             // If ID of current online version is found, look up the PID value of that:
             if ($oid
-                && ($ignoreWorkspaceMatch || (int)$wsid === (int)static::getBackendUserAuthentication()->workspace)
+                && ($ignoreWorkspaceMatch || (static::getBackendUserAuthentication() instanceof BackendUserAuthentication && (int)$wsid === (int)static::getBackendUserAuthentication()->workspace))
             ) {
                 $oidRec = self::getRecord($table, $oid, 'pid');
                 if (is_array($oidRec)) {
@@ -4033,7 +4042,7 @@ class BackendUtility
         // I don't know if this move can be useful for users to toggle. Technically it can help debugging.
         $previewMovePlaceholders = true;
         // Initialize workspace ID
-        if ($wsid == -99) {
+        if ($wsid == -99 && static::getBackendUserAuthentication() instanceof BackendUserAuthentication) {
             $wsid = static::getBackendUserAuthentication()->workspace;
         }
         // Check if workspace is different from zero and record is set:
@@ -4229,7 +4238,7 @@ class BackendUtility
      */
     public static function versioningPlaceholderClause($table)
     {
-        if (static::isTableWorkspaceEnabled($table)) {
+        if (static::isTableWorkspaceEnabled($table) && static::getBackendUserAuthentication() instanceof BackendUserAuthentication) {
             $currentWorkspace = (int)static::getBackendUserAuthentication()->workspace;
             return ' AND (' . $table . '.t3ver_state <= ' . new VersionState(VersionState::DEFAULT_STATE) . ' OR ' . $table . '.t3ver_wsid = ' . $currentWorkspace . ')';
         }
@@ -4246,7 +4255,7 @@ class BackendUtility
     public static function getWorkspaceWhereClause($table, $workspaceId = null)
     {
         $whereClause = '';
-        if (self::isTableWorkspaceEnabled($table)) {
+        if (self::isTableWorkspaceEnabled($table) && static::getBackendUserAuthentication() instanceof BackendUserAuthentication) {
             if ($workspaceId === null) {
                 $workspaceId = static::getBackendUserAuthentication()->workspace;
             }
@@ -4266,12 +4275,15 @@ class BackendUtility
      */
     public static function wsMapId($table, $uid)
     {
-        $wsRec = self::getWorkspaceVersionOfRecord(
-            static::getBackendUserAuthentication()->workspace,
-            $table,
-            $uid,
-            'uid'
-        );
+        $wsRec = null;
+        if (static::getBackendUserAuthentication() instanceof BackendUserAuthentication) {
+            $wsRec = self::getWorkspaceVersionOfRecord(
+                static::getBackendUserAuthentication()->workspace,
+                $table,
+                $uid,
+                'uid'
+            );
+        }
         return is_array($wsRec) ? $wsRec['uid'] : $uid;
     }
 
@@ -4286,7 +4298,7 @@ class BackendUtility
      */
     public static function getMovePlaceholder($table, $uid, $fields = '*', $workspace = null)
     {
-        if ($workspace === null) {
+        if ($workspace === null && static::getBackendUserAuthentication() instanceof BackendUserAuthentication) {
             $workspace = static::getBackendUserAuthentication()->workspace;
         }
         if ((int)$workspace !== 0 && $GLOBALS['TCA'][$table] && static::isTableWorkspaceEnabled($table)) {

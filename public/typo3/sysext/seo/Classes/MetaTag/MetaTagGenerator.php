@@ -113,8 +113,10 @@ class MetaTagGenerator
         $noIndex = ((bool)$params['page']['no_index']) ? 'noindex' : 'index';
         $noFollow = ((bool)$params['page']['no_follow']) ? 'nofollow' : 'follow';
 
-        $manager = $metaTagManagerRegistry->getManagerForProperty('robots');
-        $manager->addProperty('robots', implode(',', [$noIndex, $noFollow]));
+        if ($noIndex === 'noindex' || $noFollow === 'nofollow') {
+            $manager = $metaTagManagerRegistry->getManagerForProperty('robots');
+            $manager->addProperty('robots', implode(',', [$noIndex, $noFollow]));
+        }
     }
 
     /**
@@ -131,7 +133,7 @@ class MetaTagGenerator
         foreach ($fileReferences as $file) {
             $arguments = $file->getProperties();
             $cropVariantCollection = CropVariantCollection::create((string)$arguments['crop']);
-            $cropVariant = $arguments['cropVariant'] ?: 'default';
+            $cropVariant = $arguments['cropVariant'] ?: 'social';
             $cropArea = $cropVariantCollection->getCropArea($cropVariant);
             $crop = $cropArea->makeAbsoluteBasedOnFile($file);
 

@@ -26,6 +26,7 @@ use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\HttpUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
 use TYPO3\CMS\Recordlist\Tree\View\LinkParameterProviderInterface;
 use TYPO3\CMS\Recordlist\View\FolderUtilityRenderer;
@@ -164,7 +165,8 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         // Or get the user's default upload folder
         if (!$this->selectedFolder) {
             try {
-                $this->selectedFolder = $backendUser->getDefaultUploadFolder();
+                [, $pid, $table,, $field] = explode('-', explode('|', $this->bparams)[4]);
+                $this->selectedFolder = $backendUser->getDefaultUploadFolder($pid, $table, $field);
             } catch (\Exception $e) {
                 // The configured default user folder does not exist
             }
@@ -187,7 +189,8 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             $_MCONF['name'] = 'file_list';
             $_MOD_SETTINGS = BackendUtility::getModuleData($_MOD_MENU, GeneralUtility::_GP('SET'), $_MCONF['name']);
         }
-        $noThumbs = $noThumbs ?: !$_MOD_SETTINGS['displayThumbs'];
+        $displayThumbs = $_MOD_SETTINGS['displayThumbs'] ?? false;
+        $noThumbs = $noThumbs ?: !$displayThumbs;
         // Create folder tree:
         /** @var ElementBrowserFolderTreeView $folderTree */
         $folderTree = GeneralUtility::makeInstance(ElementBrowserFolderTreeView::class);
@@ -210,7 +213,6 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
         $markup[] = '   <div class="element-browser-panel element-browser-main">';
         $markup[] = '       <div class="element-browser-main-sidebar">';
         $markup[] = '           <div class="element-browser-body">';
-        $markup[] = '               <h3>' . htmlspecialchars($this->getLanguageService()->getLL('folderTree')) . ':</h3>';
         $markup[] = '               ' . $tree;
         $markup[] = '           </div>';
         $markup[] = '       </div>';
@@ -262,7 +264,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
 
         $lines[] = '
 			<tr>
-				<th class="col-title nowrap">' . $folderIcon . ' ' . htmlspecialchars(GeneralUtility::fixed_lgd_cs($folder->getIdentifier(), $titleLen)) . '</th>
+				<th class="col-title nowrap">' . $folderIcon . ' ' . htmlspecialchars(GeneralUtility::fixed_lgd_cs($folder->getStorage()->getName() . ':' . $folder->getReadablePath(), $titleLen)) . '</th>
 				<th class="col-control nowrap"></th>
 				<th class="col-clipboard nowrap">
 					<a href="#" class="btn btn-default" id="t3js-importSelection" title="' . htmlspecialchars($lang->getLL('importSelection')) . '">' . $this->iconFactory->getIcon('actions-document-import-t3d', Icon::SIZE_SMALL) . '</a>
@@ -415,7 +417,7 @@ class FileBrowser extends AbstractElementBrowser implements ElementBrowserInterf
             $_MOD_MENU = ['displayThumbs' => ''];
             $_MCONF['name'] = 'file_list';
             $_MOD_SETTINGS = BackendUtility::getModuleData($_MOD_MENU, GeneralUtility::_GP('SET'), $_MCONF['name']);
-            $addParams = GeneralUtility::implodeArrayForUrl('', $this->getUrlParameters(['identifier' => $this->selectedFolder->getCombinedIdentifier()]));
+            $addParams = HttpUtility::buildQueryString($this->getUrlParameters(['identifier' => $this->selectedFolder->getCombinedIdentifier()]), '&');
             $thumbNailCheck = '<div class="checkbox" style="padding:5px 0 15px 0"><label for="checkDisplayThumbs">'
                 . BackendUtility::getFuncCheck(
                     '',

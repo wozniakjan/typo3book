@@ -878,6 +878,7 @@ class PageLayoutView implements LoggerAwareInterface
         foreach ($GLOBALS['TCA']['tt_content']['columns']['CType']['config']['items'] as $val) {
             $this->CType_labels[$val[1]] = $this->getLanguageService()->sL($val[0]);
         }
+
         $this->itemLabels = [];
         foreach ($GLOBALS['TCA']['tt_content']['columns'] as $name => $val) {
             $this->itemLabels[$name] = $this->getLanguageService()->sL($val['label']);
@@ -1011,15 +1012,12 @@ class PageLayoutView implements LoggerAwareInterface
                             $languageColumn[$columnId][$lP] = $head[$columnId] . $content[$columnId];
                         }
                         if (is_array($row) && !VersionState::cast($row['t3ver_state'])->equals(VersionState::DELETE_PLACEHOLDER)) {
-                            $singleElementHTML = '';
+                            $singleElementHTML = '<div class="t3-page-ce-dragitem" id="' . StringUtility::getUniqueId() . '">';
                             if (!$lP && ($this->defLangBinding || $row['sys_language_uid'] != -1)) {
                                 $defaultLanguageElementsByColumn[$columnId][] = ($row['_ORIG_uid'] ?? $row['uid']);
                             }
                             $editUidList .= $row['uid'] . ',';
                             $disableMoveAndNewButtons = $this->defLangBinding && $lP > 0 && $this->checkIfTranslationsExistInLanguage($contentRecordsPerColumn, $lP);
-                            if (!$this->tt_contentConfig['languageMode']) {
-                                $singleElementHTML .= '<div class="t3-page-ce-dragitem" id="' . StringUtility::getUniqueId() . '">';
-                            }
                             $singleElementHTML .= $this->tt_content_drawHeader(
                                 $row,
                                 $this->tt_contentConfig['showInfo'] ? 15 : 5,
@@ -1029,7 +1027,7 @@ class PageLayoutView implements LoggerAwareInterface
                             );
                             $innerContent = '<div ' . ($row['_ORIG_uid'] ? ' class="ver-element"' : '') . '>'
                                 . $this->tt_content_drawItem($row) . '</div>';
-                            $singleElementHTML .= '<div class="t3-page-ce-body-inner">' . $innerContent . '</div>'
+                            $singleElementHTML .= '<div class="t3-page-ce-body-inner">' . $innerContent . '</div></div>'
                                 . $this->tt_content_drawFooter($row);
                             $isDisabled = $this->isDisabled('tt_content', $row);
                             $statusHidden = $isDisabled ? ' t3-page-ce-hidden t3js-hidden-record' : '';
@@ -1043,9 +1041,7 @@ class PageLayoutView implements LoggerAwareInterface
                             $singleElementHTML = '<div class="t3-page-ce' . $highlightHeader . ' t3js-page-ce t3js-page-ce-sortable ' . $statusHidden . '" id="element-tt_content-'
                                 . $row['uid'] . '" data-table="tt_content" data-uid="' . $row['uid'] . '"' . $displayNone . '>' . $singleElementHTML . '</div>';
 
-                            if ($this->tt_contentConfig['languageMode']) {
-                                $singleElementHTML .= '<div class="t3-page-ce" data-colpos="' . $columnId . '">';
-                            }
+                            $singleElementHTML .= '<div class="t3-page-ce" data-colpos="' . $columnId . '">';
                             $singleElementHTML .= '<div class="t3js-page-new-ce t3-page-ce-wrapper-new-ce" id="colpos-' . $columnId . '-' . 'page-' . $id .
                                 '-' . StringUtility::getUniqueId() . '">';
                             // Add icon "new content element below"
@@ -1327,6 +1323,7 @@ class PageLayoutView implements LoggerAwareInterface
                                 $pageLocalizationRecord['uid'] => 'edit'
                             ]
                         ],
+                        // Disallow manual adjustment of the language field for pages
                         'overrideVals' => [
                             'pages' => [
                                 'sys_language_uid' => $lP
@@ -2207,7 +2204,12 @@ class PageLayoutView implements LoggerAwareInterface
                         $out = $view->render();
                         $drawItem = false;
                     } catch (\Exception $e) {
-                        // Catch any exception to avoid breaking the view
+                        $this->logger->warning(sprintf(
+                            'The backend preview for content element %d can not be rendered using the Fluid template file "%s": %s',
+                            $row['uid'],
+                            $fluidTemplateFile,
+                            $e->getMessage()
+                        ));
                     }
                 }
             }
@@ -2297,8 +2299,11 @@ class PageLayoutView implements LoggerAwareInterface
                     break;
                 default:
                     $contentType = $this->CType_labels[$row['CType']];
+                    if (!isset($contentType)) {
+                        $contentType =  BackendUtility::getLabelFromItemListMerged($row['pid'], 'tt_content', 'CType', $row['CType']);
+                    }
 
-                    if (isset($contentType)) {
+                    if ($contentType) {
                         $out .= $this->linkEditContent('<strong>' . htmlspecialchars($contentType) . '</strong>', $row) . '<br />';
                         if ($row['bodytext']) {
                             $out .= $this->linkEditContent($this->renderText($row['bodytext']), $row) . '<br />';
@@ -2427,7 +2432,7 @@ class PageLayoutView implements LoggerAwareInterface
                 $allowTranslate = false;
             }
             if (isset($this->languageHasTranslationsCache[$lP]['hasTranslations'])) {
-                $allowCopy = !$this->languageHasTranslationsCache[$lP]['hasTranslations'];
+                $allowCopy = $allowCopy && !$this->languageHasTranslationsCache[$lP]['hasTranslations'];
             }
         }
 
@@ -3802,10 +3807,7 @@ class PageLayoutView implements LoggerAwareInterface
             $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
             $url = (string)$uriBuilder->buildUriFromRoutePath($routePath, $urlParameters);
         } else {
-            $url = GeneralUtility::getIndpEnv('SCRIPT_NAME') . '?' . ltrim(
-                    GeneralUtility::implodeArrayForUrl('', $urlParameters),
-                    '&'
-                );
+            $url = GeneralUtility::getIndpEnv('SCRIPT_NAME') . HttpUtility::buildQueryString($urlParameters, '?');
         }
         return $url;
     }
@@ -4252,7 +4254,7 @@ class PageLayoutView implements LoggerAwareInterface
                 $content = '<a href="' . htmlspecialchars($href) . '">' . $this->iconFactory->getIcon(
                         'actions-move-up',
                         Icon::SIZE_SMALL
-                    )->render() . '</a> <i>[1 - ' . $pointer . ']</i>';
+                    )->render() . '</a> <i>[' . (max(0, $pointer - $this->iLimit) + 1) . ' - ' . $pointer . ']</i>';
                 break;
             case 'rwd':
                 $href = $this->listURL() . '&pointer=' . $pointer . $tParam;

@@ -1299,11 +1299,12 @@ return [
         'disableNoCacheParameter' => false,
         'cacheHash' => [
             'cachedParametersWhiteList' => [],
-            'excludedParameters' => ['L', 'pk_campaign', 'pk_kwd', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid'],
+            'excludedParameters' => ['L', 'pk_campaign', 'pk_kwd', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid'],
             'requireCacheHashPresenceParameters' => [],
             'excludeAllEmptyParameters' => false,
             'excludedParametersIfEmpty' => []
         ],
+        'additionalCanonicalizedUrlParameters' => [],
         'workspacePreviewLogoutTemplate' => '',
         'versionNumberInFilename' => 'querystring',
         'contentRenderingTemplates' => [], // Array to define the TypoScript parts that define the main content rendering. Extensions like "fluid_styled_content" provide content rendering templates. Other extensions like "felogin" or "indexed search" extend these templates and their TypoScript parts are added directly after the content templates. See EXT:fluid_styled_content/ext_localconf.php and EXT:frontend/Classes/TypoScript/TemplateService.php

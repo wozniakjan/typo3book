@@ -29,6 +29,12 @@ return [
         'install' => [
             'packagePath' => 'typo3/sysext/install/',
         ],
+        'recordlist' => [
+            'packagePath' => 'typo3/sysext/recordlist/',
+        ],
+        'backend' => [
+            'packagePath' => 'typo3/sysext/backend/',
+        ],
         'reports' => [
             'packagePath' => 'typo3/sysext/reports/',
         ],
@@ -43,9 +49,6 @@ return [
         ],
         'adminpanel' => [
             'packagePath' => 'typo3/sysext/adminpanel/',
-        ],
-        'backend' => [
-            'packagePath' => 'typo3/sysext/backend/',
         ],
         'belog' => [
             'packagePath' => 'typo3/sysext/belog/',
@@ -73,9 +76,6 @@ return [
         ],
         'lowlevel' => [
             'packagePath' => 'typo3/sysext/lowlevel/',
-        ],
-        'recordlist' => [
-            'packagePath' => 'typo3/sysext/recordlist/',
         ],
         'redirects' => [
             'packagePath' => 'typo3/sysext/redirects/',

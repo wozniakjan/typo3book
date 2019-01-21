@@ -9,20 +9,20 @@ class ComposerStaticInitde152fbecf7d4728d8d5bc9638ac4311
     public static $files = array (
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
-        '6a47392539ca2329373e0d33e1dba053' => __DIR__ . '/..' . '/symfony/polyfill-intl-icu/bootstrap.php',
-        'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
+        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
+        'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
+        '6a47392539ca2329373e0d33e1dba053' => __DIR__ . '/..' . '/symfony/polyfill-intl-icu/bootstrap.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
         '8a197a13b1f213f3a2178168511a1b5d' => __DIR__ . '/../..' . '/public/typo3/sysext/core/Resources/PHP/GlobalDebugFunctions.php',
-        'dab147882f93fce1dccf2a1db97ea71f' => __DIR__ . '/..' . '/typo3/autoload-include.php',
-        '366efb6ed1a74a5c0d2d9ebaa0ca3abd' => __DIR__ . '/..' . '/helhum/console-autoload-include.php',
+        '11b68ff994bb1f99da9dbd2405c6c616' => __DIR__ . '/..' . '/helhum/console-autoload-include.php',
+        '01f368d689df9bc0e426630c0c30ad4b' => __DIR__ . '/..' . '/typo3/autoload-include.php',
     );
 
     public static $prefixLengthsPsr4 = array (
         'T' => 
         array (
-            'TYPO3\\PharStreamWrapper\\Tests\\' => 30,
             'TYPO3\\PharStreamWrapper\\' => 24,
             'TYPO3\\ClassAliasLoader\\' => 23,
             'TYPO3\\CMS\\Viewpage\\' => 19,
@@ -61,7 +61,9 @@ class ComposerStaticInitde152fbecf7d4728d8d5bc9638ac4311
         array (
             'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Symfony\\Polyfill\\Ctype\\' => 23,
+            'Symfony\\Contracts\\' => 18,
             'Symfony\\Component\\Yaml\\' => 23,
+            'Symfony\\Component\\VarExporter\\' => 30,
             'Symfony\\Component\\Routing\\' => 26,
             'Symfony\\Component\\Process\\' => 26,
             'Symfony\\Component\\Intl\\' => 23,
@@ -107,10 +109,6 @@ class ComposerStaticInitde152fbecf7d4728d8d5bc9638ac4311
     );
 
     public static $prefixDirsPsr4 = array (
-        'TYPO3\\PharStreamWrapper\\Tests\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/typo3/phar-stream-wrapper/tests',
-        ),
         'TYPO3\\PharStreamWrapper\\' => 
         array (
             0 => __DIR__ . '/..' . '/typo3/phar-stream-wrapper/src',
@@ -251,9 +249,17 @@ class ComposerStaticInitde152fbecf7d4728d8d5bc9638ac4311
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
         ),
+        'Symfony\\Contracts\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/contracts',
+        ),
         'Symfony\\Component\\Yaml\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/yaml',
+        ),
+        'Symfony\\Component\\VarExporter\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/var-exporter',
         ),
         'Symfony\\Component\\Routing\\' => 
         array (
@@ -359,10 +365,10 @@ class ComposerStaticInitde152fbecf7d4728d8d5bc9638ac4311
         ),
         'Doctrine\\Common\\' => 
         array (
-            0 => __DIR__ . '/..' . '/doctrine/reflection/lib/Doctrine/Common',
+            0 => __DIR__ . '/..' . '/doctrine/common/lib/Doctrine/Common',
             1 => __DIR__ . '/..' . '/doctrine/event-manager/lib/Doctrine/Common',
             2 => __DIR__ . '/..' . '/doctrine/persistence/lib/Doctrine/Common',
-            3 => __DIR__ . '/..' . '/doctrine/common/lib/Doctrine/Common',
+            3 => __DIR__ . '/..' . '/doctrine/reflection/lib/Doctrine/Common',
         ),
     );
 

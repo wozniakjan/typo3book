@@ -20,9 +20,12 @@ define([
   'jquery',
   'd3',
   'TYPO3/CMS/Backend/Modal',
-  'TYPO3/CMS/Backend/Severity'
-], function($, d3, Modal, Severity) {
+  'TYPO3/CMS/Backend/Severity',
+  'TYPO3/CMS/Core/SecurityUtility'
+], function($, d3, Modal, Severity, SecurityUtility) {
   'use strict';
+
+  var securityUtility = new SecurityUtility();
 
   /**
    * PageTreeDragDrop class
@@ -277,7 +280,7 @@ define([
                 name: 'copy'
               },
               {
-                text: $(this).data('button-ok-text') || TYPO3.lang['button.move'] || 'Move',
+                text: $(this).data('button-ok-text') || TYPO3.lang['labels.move'] || 'Move',
                 btnClass: 'btn-warning',
                 name: 'move'
               }
@@ -841,16 +844,27 @@ define([
      * @returns {String}
      */
     template: function(icon, name) {
-      return '<div class="node-dd node-dd--nodrop">' +
-        '<div class="node-dd__ctrl-icon">' +
-        '</div>' +
-        '<div class="node-dd__text">' +
-        '<span class="node-dd__icon">' +
-        '<svg aria-hidden="true" width="16px" height="16px"><use xlink:href="' + icon + '"/></svg>' +
-        '</span>' +
-        '<span class="node-dd__name">' + name + '</span>' +
-        '</div>' +
-        '</div>';
+      return $('<div>').append(
+        $('<div>', {'class': 'node-dd node-dd--nodrop'}).append(
+          $('<div>', {'class': 'node-dd__ctrl-icon'}),
+          $('<div>', {'class': 'node-dd__text'}).append(
+            $('<span>', {'class': 'node-dd__icon'}).append(
+              $('<svg>', {
+                'aria-hidden': 'true',
+                'width': '16px',
+                'height': '16px'
+              }).append(
+                $('<use>', {
+                  'xlink:href': icon
+                })
+              )
+            ),
+            $('<span>', {'class': 'node-dd__name'}).html(
+              securityUtility.encodeHtml(name)
+            )
+          )
+        )
+      ).html();
     }
   };
 

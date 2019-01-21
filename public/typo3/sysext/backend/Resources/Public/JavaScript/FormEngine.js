@@ -133,6 +133,13 @@ define(['jquery',
     if (isMultiple || isList) {
       // If multiple values are not allowed, clear anything that is in the control already
       if (!isMultiple) {
+        var $availableFieldEl = FormEngine.getFieldElement(fieldName, '_avail');
+        $fieldEl.find('option').each(function() {
+          $availableFieldEl
+            .find('option[value="' + $.escapeSelector($(this).attr('value')) + '"]')
+            .removeClass('hidden')
+            .prop('disabled', false);
+        });
         $fieldEl.empty();
       }
 
@@ -626,6 +633,7 @@ define(['jquery',
         FormEngine.updateHiddenFieldValueFromSelect($listFieldEl, FormEngine.getFieldElement(fieldName));
         FormEngine.legacyFieldChangedCb();
         if (typeof FormEngine.Validation !== 'undefined' && typeof FormEngine.Validation.validate === 'function') {
+          FormEngine.Validation.markFieldAsChanged($listFieldEl);
           FormEngine.Validation.validate();
         }
       }
@@ -1024,7 +1032,9 @@ define(['jquery',
     }
     if ($('.t3-form-suggest').length) {
       require(['TYPO3/CMS/Backend/FormEngineSuggest'], function(Suggest) {
-        Suggest($('.t3-form-suggest'));
+        $('.t3-form-suggest').each(function(index, suggestElement) {
+          new Suggest(suggestElement);
+        });
       });
     }
     // Apply DatePicker to all date time fields
@@ -1163,7 +1173,7 @@ define(['jquery',
       ];
       if ($('.has-error').length === 0) {
         buttons.push({
-          text: TYPO3.lang['buttons.confirm.save and close'] || 'Save and close',
+          text: TYPO3.lang['buttons.confirm.save_and_close'] || 'Save and close',
           btnClass: 'btn-warning',
           name: 'save',
           active: true

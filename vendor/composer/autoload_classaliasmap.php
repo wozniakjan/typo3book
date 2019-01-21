@@ -2,6 +2,11 @@
 return array (
   'aliasToClassNameMapping' => 
   array (
+    'typo3\\cms\\frontend\\view\\adminpanelview' => 'TYPO3\\CMS\\Adminpanel\\View\\AdminPanelView',
+    'typo3\\cms\\frontend\\view\\adminpanelviewhookinterface' => 'TYPO3\\CMS\\Adminpanel\\View\\AdminPanelViewHookInterface',
+    'typo3\\cms\\backend\\ajaxloginhandler' => 'TYPO3\\CMS\\Backend\\Controller\\AjaxLoginController',
+    'typo3\\cms\\backend\\form\\wizard\\imagemanipulationwizard' => 'TYPO3\\CMS\\Backend\\Controller\\Wizard\\ImageManipulationController',
+    'typo3\\cms\\cshmanual\\domain\\repository\\tablemanualrepository' => 'TYPO3\\CMS\\Backend\\Domain\\Repository\\TableManualRepository',
     'typo3\\cms\\lang\\languageservice' => 'TYPO3\\CMS\\Core\\Localization\\LanguageService',
     'typo3\\cms\\contexthelp\\controller\\contexthelpajaxcontroller' => 'TYPO3\\CMS\\Backend\\Controller\\ContextHelpAjaxController',
     'typo3\\cms\\sv\\abstractauthenticationservice' => 'TYPO3\\CMS\\Core\\Authentication\\AbstractAuthenticationService',
@@ -84,23 +89,38 @@ return array (
     'typo3\\cms\\fluid\\core\\viewhelper\\viewhelpervariablecontainer' => 'TYPO3Fluid\\Fluid\\Core\\ViewHelper\\ViewHelperVariableContainer',
     'typo3\\cms\\fluid\\core\\variables\\cmsvariableprovider' => 'TYPO3Fluid\\Fluid\\Core\\Variables\\StandardVariableProvider',
     'typo3\\cms\\fluid\\core\\viewhelper\\tagbuilder' => 'TYPO3Fluid\\Fluid\\Core\\ViewHelper\\TagBuilder',
-    'typo3\\cms\\backend\\ajaxloginhandler' => 'TYPO3\\CMS\\Backend\\Controller\\AjaxLoginController',
-    'typo3\\cms\\backend\\form\\wizard\\imagemanipulationwizard' => 'TYPO3\\CMS\\Backend\\Controller\\Wizard\\ImageManipulationController',
-    'typo3\\cms\\cshmanual\\domain\\repository\\tablemanualrepository' => 'TYPO3\\CMS\\Backend\\Domain\\Repository\\TableManualRepository',
-    'typo3\\cms\\frontend\\view\\adminpanelview' => 'TYPO3\\CMS\\Adminpanel\\View\\AdminPanelView',
-    'typo3\\cms\\frontend\\view\\adminpanelviewhookinterface' => 'TYPO3\\CMS\\Adminpanel\\View\\AdminPanelViewHookInterface',
     'typo3\\cms\\frontend\\controller\\pageinformationcontroller' => 'TYPO3\\CMS\\Info\\Controller\\PageInformationController',
     'typo3\\cms\\frontend\\controller\\translationstatuscontroller' => 'TYPO3\\CMS\\Info\\Controller\\TranslationStatusController',
     'typo3\\cms\\infopagetsconfig\\controller\\infopagetyposcriptconfigcontroller' => 'TYPO3\\CMS\\Info\\Controller\\InfoPageTyposcriptConfigController',
     'typo3\\cms\\lowlevel\\view\\configurationview' => 'TYPO3\\CMS\\Lowlevel\\Controller\\ConfigurationController',
     'typo3\\cms\\lowlevel\\view\\databaseintegrityview' => 'TYPO3\\CMS\\Lowlevel\\Controller\\DatabaseIntegrityController',
+    'typo3\\cms\\recordlist\\recordlist' => 'TYPO3\\CMS\\Recordlist\\Controller\\RecordListController',
     'typo3\\cms\\sv\\report\\serviceslistreport' => 'TYPO3\\CMS\\Reports\\Report\\ServicesListReport',
     'typo3\\cms\\t3editor\\codecompletion' => 'TYPO3\\CMS\\T3editor\\Controller\\CodeCompletionController',
     'typo3\\cms\\t3editor\\typoscriptreferenceloader' => 'TYPO3\\CMS\\T3editor\\Controller\\TypoScriptReferenceController',
-    'typo3\\cms\\recordlist\\recordlist' => 'TYPO3\\CMS\\Recordlist\\Controller\\RecordListController',
   ),
   'classNameToAliasMapping' => 
   array (
+    'TYPO3\\CMS\\Adminpanel\\View\\AdminPanelView' => 
+    array (
+      'typo3\\cms\\frontend\\view\\adminpanelview' => 'typo3\\cms\\frontend\\view\\adminpanelview',
+    ),
+    'TYPO3\\CMS\\Adminpanel\\View\\AdminPanelViewHookInterface' => 
+    array (
+      'typo3\\cms\\frontend\\view\\adminpanelviewhookinterface' => 'typo3\\cms\\frontend\\view\\adminpanelviewhookinterface',
+    ),
+    'TYPO3\\CMS\\Backend\\Controller\\AjaxLoginController' => 
+    array (
+      'typo3\\cms\\backend\\ajaxloginhandler' => 'typo3\\cms\\backend\\ajaxloginhandler',
+    ),
+    'TYPO3\\CMS\\Backend\\Controller\\Wizard\\ImageManipulationController' => 
+    array (
+      'typo3\\cms\\backend\\form\\wizard\\imagemanipulationwizard' => 'typo3\\cms\\backend\\form\\wizard\\imagemanipulationwizard',
+    ),
+    'TYPO3\\CMS\\Backend\\Domain\\Repository\\TableManualRepository' => 
+    array (
+      'typo3\\cms\\cshmanual\\domain\\repository\\tablemanualrepository' => 'typo3\\cms\\cshmanual\\domain\\repository\\tablemanualrepository',
+    ),
     'TYPO3\\CMS\\Core\\Localization\\LanguageService' => 
     array (
       'typo3\\cms\\lang\\languageservice' => 'typo3\\cms\\lang\\languageservice',
@@ -345,26 +365,6 @@ return array (
     array (
       'typo3\\cms\\fluid\\core\\viewhelper\\tagbuilder' => 'typo3\\cms\\fluid\\core\\viewhelper\\tagbuilder',
     ),
-    'TYPO3\\CMS\\Backend\\Controller\\AjaxLoginController' => 
-    array (
-      'typo3\\cms\\backend\\ajaxloginhandler' => 'typo3\\cms\\backend\\ajaxloginhandler',
-    ),
-    'TYPO3\\CMS\\Backend\\Controller\\Wizard\\ImageManipulationController' => 
-    array (
-      'typo3\\cms\\backend\\form\\wizard\\imagemanipulationwizard' => 'typo3\\cms\\backend\\form\\wizard\\imagemanipulationwizard',
-    ),
-    'TYPO3\\CMS\\Backend\\Domain\\Repository\\TableManualRepository' => 
-    array (
-      'typo3\\cms\\cshmanual\\domain\\repository\\tablemanualrepository' => 'typo3\\cms\\cshmanual\\domain\\repository\\tablemanualrepository',
-    ),
-    'TYPO3\\CMS\\Adminpanel\\View\\AdminPanelView' => 
-    array (
-      'typo3\\cms\\frontend\\view\\adminpanelview' => 'typo3\\cms\\frontend\\view\\adminpanelview',
-    ),
-    'TYPO3\\CMS\\Adminpanel\\View\\AdminPanelViewHookInterface' => 
-    array (
-      'typo3\\cms\\frontend\\view\\adminpanelviewhookinterface' => 'typo3\\cms\\frontend\\view\\adminpanelviewhookinterface',
-    ),
     'TYPO3\\CMS\\Info\\Controller\\PageInformationController' => 
     array (
       'typo3\\cms\\frontend\\controller\\pageinformationcontroller' => 'typo3\\cms\\frontend\\controller\\pageinformationcontroller',
@@ -385,6 +385,10 @@ return array (
     array (
       'typo3\\cms\\lowlevel\\view\\databaseintegrityview' => 'typo3\\cms\\lowlevel\\view\\databaseintegrityview',
     ),
+    'TYPO3\\CMS\\Recordlist\\Controller\\RecordListController' => 
+    array (
+      'typo3\\cms\\recordlist\\recordlist' => 'typo3\\cms\\recordlist\\recordlist',
+    ),
     'TYPO3\\CMS\\Reports\\Report\\ServicesListReport' => 
     array (
       'typo3\\cms\\sv\\report\\serviceslistreport' => 'typo3\\cms\\sv\\report\\serviceslistreport',
@@ -396,10 +400,6 @@ return array (
     'TYPO3\\CMS\\T3editor\\Controller\\TypoScriptReferenceController' => 
     array (
       'typo3\\cms\\t3editor\\typoscriptreferenceloader' => 'typo3\\cms\\t3editor\\typoscriptreferenceloader',
-    ),
-    'TYPO3\\CMS\\Recordlist\\Controller\\RecordListController' => 
-    array (
-      'typo3\\cms\\recordlist\\recordlist' => 'typo3\\cms\\recordlist\\recordlist',
     ),
   ),
 );

@@ -1832,7 +1832,7 @@ class DatabaseRecordList
             return '';
         }
         $content = '';
-        $listURL = $this->listURL('', $this->table);
+        $listURL = $this->listURL('', $this->table, 'firstElementNumber');
         // 1 = first page
         // 0 = first element
         $currentPage = floor($this->firstElementNumber / $this->iLimit) + 1;
@@ -1988,6 +1988,8 @@ class DatabaseRecordList
             $params = '&edit[' . $table . '][' . $row['uid'] . ']=edit';
             $iconIdentifier = 'actions-open';
             if ($table === 'pages') {
+                // Disallow manual adjustment of the language field for pages
+                $params .= '&overrideVals[pages][sys_language_uid]=' . (int)$row[$GLOBALS['TCA']['pages']['ctrl']['languageField']];
                 $iconIdentifier = 'actions-page-open';
             }
             $overlayIdentifier = !$this->isEditable($table) ? 'overlay-readonly' : null;
@@ -3160,33 +3162,33 @@ class DatabaseRecordList
                     <div class="panel panel-default">
                         <div class="panel-body">
                             <div class="row">
-                                <div class="form-group col-xs-12">
+                                <div class="col-sm-6 col-xs-12">
                                     <label for="search_field">' . htmlspecialchars(
                 $lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:labels.label.searchString')
-            ) . ': </label>
+            ) . '</label>
 									<input class="form-control" type="search" placeholder="' . htmlspecialchars(
                 $lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:labels.enterSearchString')
             ) . '" title="' . htmlspecialchars(
                 $lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:labels.title.searchString')
             ) . '" name="search_field" id="search_field" value="' . htmlspecialchars($this->searchString) . '" />
                                 </div>
-                                <div class="form-group col-xs-12 col-sm-6">
+                                <div class="col-xs-12 col-sm-3">
 									<label for="search_levels">' . htmlspecialchars(
                 $lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:labels.label.search_levels')
-            ) . ': </label>
+            ) . '</label>
 									' . $lMenu . '
                                 </div>
-                                <div class="form-group col-xs-12 col-sm-6">
+                                <div class="col-xs-12 col-sm-3">
 									<label for="showLimit">' . htmlspecialchars(
                 $lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:labels.label.limit')
-            ) . ': </label>
+            ) . '</label>
 									<input class="form-control" type="number" min="0" max="10000" placeholder="10" title="' . htmlspecialchars(
                 $lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:labels.title.limit')
             ) . '" name="showLimit" id="showLimit" value="' . htmlspecialchars(
                 ($this->showLimit ? $this->showLimit : '')
             ) . '" />
                                 </div>
-                                <div class="form-group col-xs-12">
+                                <div class="col-xs-12">
                                     <div class="form-control-wrap">
                                         <button type="submit" class="btn btn-default" name="search" title="' . htmlspecialchars(
                 $lang->sL('LLL:EXT:core/Resources/Private/Language/locallang_core.xlf:labels.title.search')
@@ -3775,10 +3777,7 @@ class DatabaseRecordList
             $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
             $url = (string)$uriBuilder->buildUriFromRoutePath($routePath, $urlParameters);
         } else {
-            $url = GeneralUtility::getIndpEnv('SCRIPT_NAME') . '?' . ltrim(
-                    GeneralUtility::implodeArrayForUrl('', $urlParameters),
-                    '&'
-                );
+            $url = GeneralUtility::getIndpEnv('SCRIPT_NAME') . HttpUtility::buildQueryString($urlParameters, '?');
         }
         return $url;
     }
@@ -4245,7 +4244,7 @@ class DatabaseRecordList
                 $content = '<a href="' . htmlspecialchars($href) . '">' . $this->iconFactory->getIcon(
                         'actions-move-up',
                         Icon::SIZE_SMALL
-                    )->render() . '</a> <i>[1 - ' . $pointer . ']</i>';
+                    )->render() . '</a> <i>[' . (max(0, $pointer - $this->iLimit) + 1) . ' - ' . $pointer . ']</i>';
                 break;
             case 'rwd':
                 $href = $this->listURL() . '&pointer=' . $pointer . $tParam;

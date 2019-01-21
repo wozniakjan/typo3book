@@ -28,6 +28,18 @@ use TYPO3\CMS\Core\Utility\StringUtility;
  */
 class InputSlugElement extends AbstractFormElement
 {
+
+    /**
+     * Default field information enabled for this element.
+     *
+     * @var array
+     */
+    protected $defaultFieldInformation = [
+        'tcaDescription' => [
+            'renderType' => 'tcaDescription',
+        ],
+    ];
+
     /**
      * Default field wizards enabled for this element.
      *
@@ -63,8 +75,11 @@ class InputSlugElement extends AbstractFormElement
         $parameterArray = $this->data['parameterArray'];
         $resultArray = $this->initializeResultArray();
 
-        $languageField = $GLOBALS['TCA'][$table]['ctrl']['languageField'];
-        $languageId = (int)($row[$languageField][0] ?? 0);
+        $languageId = 0;
+        if (isset($GLOBALS['TCA'][$table]['ctrl']['languageField']) && !empty($GLOBALS['TCA'][$table]['ctrl']['languageField'])) {
+            $languageField = $GLOBALS['TCA'][$table]['ctrl']['languageField'];
+            $languageId = (int)((is_array($row[$languageField]) ? $row[$languageField][0] : $row[$languageField]) ?? 0);
+        }
         $baseUrl = $this->getPrefix($this->data['site'], $languageId);
 
         $itemValue = $parameterArray['itemFormElValue'];

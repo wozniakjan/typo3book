@@ -755,8 +755,11 @@ class BackendUserAuthentication extends AbstractUserAuthentication
      */
     public function checkFullLanguagesAccess($table, $record)
     {
-        $recordLocalizationAccess = $this->checkLanguageAccess(0);
-        if ($recordLocalizationAccess && BackendUtility::isTableLocalizable($table)) {
+        if (!$this->checkLanguageAccess(0)) {
+            return false;
+        }
+
+        if (BackendUtility::isTableLocalizable($table)) {
             $pointerField = $GLOBALS['TCA'][$table]['ctrl']['transOrigPointerField'];
             $pointerValue = $record[$pointerField] > 0 ? $record[$pointerField] : $record['uid'];
             $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($table);
@@ -764,7 +767,7 @@ class BackendUserAuthentication extends AbstractUserAuthentication
                 ->removeAll()
                 ->add(GeneralUtility::makeInstance(DeletedRestriction::class))
                 ->add(GeneralUtility::makeInstance(BackendWorkspaceRestriction::class));
-            $recordLocalization = $queryBuilder->select('*')
+            $recordLocalizations = $queryBuilder->select('*')
                 ->from($table)
                 ->where(
                     $queryBuilder->expr()->eq(
@@ -772,18 +775,16 @@ class BackendUserAuthentication extends AbstractUserAuthentication
                         $queryBuilder->createNamedParameter($pointerValue, \PDO::PARAM_INT)
                     )
                 )
-                ->setMaxResults(1)
                 ->execute()
-                ->fetch();
+                ->fetchAll();
 
-            if (is_array($recordLocalization)) {
-                $languageAccess = $this->checkLanguageAccess(
-                    $recordLocalization[$GLOBALS['TCA'][$table]['ctrl']['languageField']]
-                );
-                $recordLocalizationAccess = $recordLocalizationAccess && $languageAccess;
+            foreach ($recordLocalizations as $recordLocalization) {
+                if (!$this->checkLanguageAccess($recordLocalization[$GLOBALS['TCA'][$table]['ctrl']['languageField']])) {
+                    return false;
+                }
             }
         }
-        return $recordLocalizationAccess;
+        return true;
     }
 
     /**
@@ -1319,6 +1320,34 @@ class BackendUserAuthentication extends AbstractUserAuthentication
             $mountPointUids = array_merge($currentWebMounts, $mountPointUids);
         }
         $this->groupData['webmounts'] = implode(',', array_unique($mountPointUids));
+    }
+
+    /**
+     * Checks for alternative web mount points for the element browser.
+     *
+     * If there is a temporary mount point active in the page tree it will be used.
+     *
+     * If the User TSconfig options.pageTree.altElementBrowserMountPoints is not empty the pages configured
+     * there are used as web mounts If options.pageTree.altElementBrowserMountPoints.append is enabled,
+     * they are appended to the existing webmounts.
+     *
+     * @internal - do not use in your own extension
+     */
+    public function initializeWebmountsForElementBrowser()
+    {
+        $alternativeWebmountPoint = (int)$this->getSessionData('pageTree_temporaryMountPoint');
+        if ($alternativeWebmountPoint) {
+            $alternativeWebmountPoint = GeneralUtility::intExplode(',', $alternativeWebmountPoint);
+            $this->setWebmounts($alternativeWebmountPoint);
+            return;
+        }
+
+        $alternativeWebmountPoints = trim($this->getTSConfig()['options.']['pageTree.']['altElementBrowserMountPoints'] ?? '');
+        $appendAlternativeWebmountPoints = $this->getTSConfig()['options.']['pageTree.']['altElementBrowserMountPoints.']['append'] ?? '';
+        if ($alternativeWebmountPoints) {
+            $alternativeWebmountPoints = GeneralUtility::intExplode(',', $alternativeWebmountPoints);
+            $this->setWebmounts($alternativeWebmountPoints, $appendAlternativeWebmountPoints);
+        }
     }
 
     /**

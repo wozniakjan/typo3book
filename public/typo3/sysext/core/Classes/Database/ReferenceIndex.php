@@ -21,9 +21,10 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools;
 use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Database\Platform\PlatformInformation;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
-use TYPO3\CMS\Core\Messaging\FlashMessageService;
+use TYPO3\CMS\Core\Messaging\FlashMessageRendererResolver;
 use TYPO3\CMS\Core\Registry;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Folder;
@@ -291,16 +292,22 @@ class ReferenceIndex implements LoggerAwareInterface
                 $result['deletedNodes'] = count($hashList);
                 $result['deletedNodes_hashList'] = implode(',', $hashList);
                 if (!$testOnly) {
-                    $queryBuilder = $connection->createQueryBuilder();
-                    $queryBuilder
-                        ->delete('sys_refindex')
-                        ->where(
-                            $queryBuilder->expr()->in(
-                                'hash',
-                                $queryBuilder->createNamedParameter($hashList, Connection::PARAM_STR_ARRAY)
+                    $maxBindParameters = PlatformInformation::getMaxBindParameters($connection->getDatabasePlatform());
+                    foreach (array_chunk($hashList, $maxBindParameters - 10, true) as $chunk) {
+                        if (empty($chunk)) {
+                            continue;
+                        }
+                        $queryBuilder = $connection->createQueryBuilder();
+                        $queryBuilder
+                            ->delete('sys_refindex')
+                            ->where(
+                                $queryBuilder->expr()->in(
+                                    'hash',
+                                    $queryBuilder->createNamedParameter($chunk, Connection::PARAM_STR_ARRAY)
+                                )
                             )
-                        )
-                        ->execute();
+                            ->execute();
+                    }
                 }
             }
         }
@@ -1482,12 +1489,9 @@ class ReferenceIndex implements LoggerAwareInterface
             $recordsCheckedString,
             $errorCount ? FlashMessage::ERROR : FlashMessage::OK
         );
-        /** @var \TYPO3\CMS\Core\Messaging\FlashMessageService $flashMessageService */
-        $flashMessageService = GeneralUtility::makeInstance(FlashMessageService::class);
-        /** @var \TYPO3\CMS\Core\Messaging\FlashMessageQueue $defaultFlashMessageQueue */
-        $defaultFlashMessageQueue = $flashMessageService->getMessageQueueByIdentifier();
-        $defaultFlashMessageQueue->enqueue($flashMessage);
-        $bodyContent = $defaultFlashMessageQueue->renderFlashMessages();
+
+        $flashMessageRenderer = GeneralUtility::makeInstance(FlashMessageRendererResolver::class)->resolve();
+        $bodyContent = $flashMessageRenderer->render([$flashMessage]);
         if ($cli_echo) {
             echo $recordsCheckedString . ($errorCount ? 'Updates: ' . $errorCount : 'Index Integrity was perfect!') . LF;
         }
