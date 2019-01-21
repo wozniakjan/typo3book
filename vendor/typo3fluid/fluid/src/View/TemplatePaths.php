@@ -108,7 +108,7 @@ class TemplatePaths
     protected $format = self::DEFAULT_FORMAT;
 
     /**
-     * @param array|string|NULL $packageNameOrArray
+     * @param string|NULL $packageNameOrArray
      */
     public function __construct($packageNameOrArray = null)
     {

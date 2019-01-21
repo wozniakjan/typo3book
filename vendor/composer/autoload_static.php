@@ -56,6 +56,7 @@ class ComposerStaticInitde152fbecf7d4728d8d5bc9638ac4311
             'TYPO3\\CMS\\Adminpanel\\' => 21,
             'TYPO3\\CMS\\About\\' => 16,
             'TYPO3Fluid\\Fluid\\' => 17,
+            'T3G\\AgencyPack\\Blog\\' => 20,
         ),
         'S' => 
         array (
@@ -240,6 +241,10 @@ class ComposerStaticInitde152fbecf7d4728d8d5bc9638ac4311
         'TYPO3Fluid\\Fluid\\' => 
         array (
             0 => __DIR__ . '/..' . '/typo3fluid/fluid/src',
+        ),
+        'T3G\\AgencyPack\\Blog\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/public/typo3conf/ext/blog/Classes',
         ),
         'Symfony\\Polyfill\\Mbstring\\' => 
         array (

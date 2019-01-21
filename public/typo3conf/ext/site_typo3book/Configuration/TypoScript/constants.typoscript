@@ -1,4 +1,5 @@
-<INCLUDE_TYPOSCRIPT: source="FILE:EXT:fluid_styled_content/Configuration/TypoScript/constants.typoscript">
+@import 'EXT:fluid_styled_content/Configuration/TypoScript/constants.typoscript'
+@import 'EXT:blog/Configuration/TypoScript/Static/constants.txt'
 
 styles.templates {
     templateRootPath = EXT:site_typo3book/Resources/Private/ContentElements/Templates
@@ -8,4 +9,15 @@ styles.templates {
 
 pages {
     home = 1
+}
+
+plugin.tx_blog {
+    settings {
+        blogUid = 11
+        categoryUid = 13
+        tagUid = 14
+        authorUid = 15
+        archiveUid = 16
+        storagePid = 12
+    }
 }

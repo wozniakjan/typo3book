@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b203987123b87176454b1938fad74724",
+    "content-hash": "072f32cc1e8ae9a4286519b4c4767d53",
     "packages": [
         {
             "name": "cogpowered/finediff",
@@ -2557,6 +2557,60 @@
             "time": "2019-01-03T09:07:35+00:00"
         },
         {
+            "name": "t3g/blog",
+            "version": "9.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://bitbucket.typo3.com/scm/ext/blog.git",
+                "reference": "e6916d761e06f6c45054f863ebdac764437863fd"
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-pdo": "*",
+                "php": "^7.2",
+                "psr/http-message": "^1.0.0",
+                "symfony/console": "^4.1",
+                "typo3/cms-backend": "^9.5.1",
+                "typo3/cms-core": "^9.5.1",
+                "typo3/cms-extbase": "^9.5.1",
+                "typo3/cms-extensionmanager": "^9.5.1",
+                "typo3/cms-fluid": "^9.5.1",
+                "typo3/cms-frontend": "^9.5.1",
+                "typo3/cms-install": "^9.5.1",
+                "typo3fluid/fluid": "2.5.*"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^2.12",
+                "roave/security-advisories": "dev-master",
+                "typo3/testing-framework": "dev-master"
+            },
+            "type": "typo3-cms-extension",
+            "extra": {
+                "typo3/cms": {
+                    "web-dir": "."
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "T3G\\AgencyPack\\Blog\\": "Classes/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "TYPO3 GmbH",
+                    "homepage": "https://typo3.com/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "This blog extension uses TYPO3s core concepts and elements to provide a full-blown blog that users of TYPO3 can instantly understand and use.",
+            "homepage": "https://extensions.typo3.org/extension/blog/",
+            "time": "2018-11-05T11:56:47+00:00"
+        },
+        {
             "name": "typo3/class-alias-loader",
             "version": "1.0.1",
             "source": {
@@ -4561,16 +4615,16 @@
         },
         {
             "name": "typo3fluid/fluid",
-            "version": "2.6.0",
+            "version": "2.5.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/TYPO3/Fluid.git",
-                "reference": "e3533d0b80e4020cf0de7a546efaae25866f898b"
+                "reference": "bcd0ff44dd3c4f9d0f37097b0237db6319c2b181"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/TYPO3/Fluid/zipball/e3533d0b80e4020cf0de7a546efaae25866f898b",
-                "reference": "e3533d0b80e4020cf0de7a546efaae25866f898b",
+                "url": "https://api.github.com/repos/TYPO3/Fluid/zipball/bcd0ff44dd3c4f9d0f37097b0237db6319c2b181",
+                "reference": "bcd0ff44dd3c4f9d0f37097b0237db6319c2b181",
                 "shasum": ""
             },
             "require": {
@@ -4578,8 +4632,8 @@
             },
             "require-dev": {
                 "mikey179/vfsstream": "^1.6",
-                "php-coveralls/php-coveralls": "^2.1",
                 "phpunit/phpunit": "^4.8",
+                "satooshi/php-coveralls": "^1.0",
                 "squizlabs/php_codesniffer": "^2.7"
             },
             "bin": [
@@ -4596,7 +4650,7 @@
                 "LGPL-3.0-or-later"
             ],
             "description": "The TYPO3 Fluid template rendering engine",
-            "time": "2018-12-07T14:46:13+00:00"
+            "time": "2018-07-09T12:55:32+00:00"
         }
     ],
     "packages-dev": [],

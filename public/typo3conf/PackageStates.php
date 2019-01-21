@@ -95,6 +95,9 @@ return [
         'viewpage' => [
             'packagePath' => 'typo3/sysext/viewpage/',
         ],
+        'blog' => [
+            'packagePath' => 'typo3conf/ext/blog/',
+        ],
         'site_typo3book' => [
             'packagePath' => 'typo3conf/ext/site_typo3book/',
         ],

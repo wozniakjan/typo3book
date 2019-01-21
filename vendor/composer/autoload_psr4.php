@@ -39,6 +39,7 @@ return array(
     'TYPO3\\CMS\\Adminpanel\\' => array($baseDir . '/public/typo3/sysext/adminpanel/Classes'),
     'TYPO3\\CMS\\About\\' => array($baseDir . '/public/typo3/sysext/about/Classes'),
     'TYPO3Fluid\\Fluid\\' => array($vendorDir . '/typo3fluid/fluid/src'),
+    'T3G\\AgencyPack\\Blog\\' => array($baseDir . '/public/typo3conf/ext/blog/Classes'),
     'Symfony\\Polyfill\\Mbstring\\' => array($vendorDir . '/symfony/polyfill-mbstring'),
     'Symfony\\Polyfill\\Ctype\\' => array($vendorDir . '/symfony/polyfill-ctype'),
     'Symfony\\Contracts\\' => array($vendorDir . '/symfony/contracts'),

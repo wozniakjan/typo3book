@@ -31,7 +31,8 @@
 		"typo3/cms-t3editor": "^9.5",
 		"typo3/cms-tstemplate": "^9.5",
 		"typo3/cms-viewpage": "^9.5",
-		"typo3/cms-lowlevel": "^9.5"
+		"typo3/cms-lowlevel": "^9.5",
+		"t3g/blog": "^9.0"
 	},
 	"scripts":{
 		"typo3-cms-scripts": [

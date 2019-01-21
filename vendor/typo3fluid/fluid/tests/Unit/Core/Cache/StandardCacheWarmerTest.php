@@ -34,10 +34,10 @@ class StandardCacheWarmerTest extends UnitTestCase
         $subject = $this->getMockBuilder(StandardCacheWarmer::class)
             ->setMethods(['warmSingleFile', 'detectControllerNamesInTemplateRootPaths'])
             ->getMock();
-        $subject->expects($this->atLeastOnce())
+        $subject->expects($this->exactly(7))
             ->method('detectControllerNamesInTemplateRootPaths')
             ->willReturn(['Default', 'Standard']);
-        $subject->expects($this->atLeastOnce())
+        $subject->expects($this->exactly(70))
             ->method('warmSingleFile')
             ->willReturn($failedCompilingState);
         $context = new RenderingContextFixture();
@@ -47,26 +47,20 @@ class StandardCacheWarmerTest extends UnitTestCase
                     'resolveAvailableTemplateFiles',
                     'resolveAvailablePartialFiles',
                     'resolveAvailableLayoutFiles',
-                    'resolveFileInPaths',
-                    'getTemplateRootPaths',
-                    'getPartialRootPaths',
-                    'getLayoutRootPaths',
+                    'resolveFileInPaths'
                 ]
             )
             ->getMock();
-        $paths->expects($this->atLeastOnce())
+        $paths->expects($this->exactly(21))
             ->method('resolveAvailableTemplateFiles')
             ->willReturn(['foo', 'bar']);
-        $paths->expects($this->atLeastOnce())
+        $paths->expects($this->exactly(7))
             ->method('resolveAvailablePartialFiles')
             ->willReturn(['foo', 'bar']);
-        $paths->expects($this->atLeastOnce())
+        $paths->expects($this->exactly(7))
             ->method('resolveAvailableLayoutFiles')
             ->willReturn(['foo', 'bar']);
-        $paths->expects($this->atLeastOnce())->method('resolveFileInPaths')->willReturn('/dev/null');
-        $paths->expects($this->atLeastOnce())->method('getTemplateRootPaths')->willReturn(['/dev/null']);
-        $paths->expects($this->atLeastOnce())->method('getPartialRootPaths')->willReturn(['/dev/null']);
-        $paths->expects($this->atLeastOnce())->method('getLayoutRootPaths')->willReturn(['/dev/null']);
+        $paths->expects($this->exactly(56))->method('resolveFileInPaths')->willReturn('/dev/null');
         $compiler = $this->getMockBuilder(TemplateCompiler::class)
             ->setMethods(['enterWarmupMode'])
             ->getMock();
