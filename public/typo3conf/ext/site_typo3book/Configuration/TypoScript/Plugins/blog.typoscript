@@ -1,0 +1,7 @@
+plugin.tx_blog {
+    view {
+        templateRootPaths.10 = EXT:site_typo3book/Resources/Private/Plugins/blog/Templates/
+        partialRootPaths.10 = EXT:site_typo3book/Resources/Private/Plugins/blog/Partials/
+        layoutRootPaths.10 = EXT:site_typo3book/Resources/Private/Plugins/blog/Layouts/
+    }
+}
