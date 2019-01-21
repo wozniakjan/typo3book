@@ -25,16 +25,18 @@
     <f:if condition="{settings.comments.disqus._typoScriptNodeValue} !== '1'">
         <f:then>
             <f:alias map="{commentCount: '{f:count(subject: \'{post.activeComments}\')}'}">
-                <span class="sep">·</span>
-                <meta itemprop="commentCount" content="{commentCount}"/>
-                <span class="comments-link">
-                    <blog:link.post post="{post}" section="comments">
-                        <f:if condition="{commentCount} == 1">
-                            <f:then><f:translate key="message.comment" arguments="{0: commentCount}"/></f:then>
-                            <f:else><f:translate key="message.comments" arguments="{0: commentCount}"/></f:else>
-                        </f:if>
-                    </blog:link.post>
-                </span>
+                <f:if condition="{commentCount} > 0">
+                    <span class="sep">·</span>
+                    <meta itemprop="commentCount" content="{commentCount}"/>
+                    <span class="comments-link">
+                        <blog:link.post post="{post}" section="comments">
+                            <f:if condition="{commentCount} == 1">
+                                <f:then><f:translate key="message.comment" arguments="{0: commentCount}"/></f:then>
+                                <f:else><f:translate key="message.comments" arguments="{0: commentCount}"/></f:else>
+                            </f:if>
+                        </blog:link.post>
+                    </span>
+                </f:if>
             </f:alias>
         </f:then>
         <f:else>
