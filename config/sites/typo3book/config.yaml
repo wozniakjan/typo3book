@@ -1,6 +1,9 @@
 rootPageId: 1
-base: /
-baseVariants: {  }
+base: 'https://www.typo3book.com/'
+baseVariants:
+  -
+    base: 'http://typo3book.ddev.local/'
+    condition: 'applicationContext == "Development"'
 languages:
   -
     title: English
@@ -27,54 +30,79 @@ routes:
 routeEnhancers:
   BlogCategoryPlugin:
     type: Extbase
-    limitToPages: [13]
+    limitToPages:
+      - 13
     extension: Blog
     plugin: Category
     routes:
-      - { routePath: '/{category_title}', _controller: 'Post::listPostsByCategory', _arguments: {'category_title': 'category'} }
+      -
+        routePath: '/{category_title}'
+        _controller: 'Post::listPostsByCategory'
+        _arguments:
+          category_title: category
     defaultController: 'Post::listRecentPostsAction'
     aspects:
       category_title:
         type: PersistedPatternMapper
-        tableName: 'sys_category'
+        tableName: sys_category
         routeFieldPattern: '^(?P<title>.+)$'
         routeFieldResult: '{title}'
   BlogTagPlugin:
     type: Extbase
-    limitToPages: [14]
+    limitToPages:
+      - 14
     extension: Blog
     plugin: Tag
     routes:
-      - { routePath: '/{tag_name}', _controller: 'Post::listPostsByTag', _arguments: {'tag_name': 'tag'} }
+      -
+        routePath: '/{tag_name}'
+        _controller: 'Post::listPostsByTag'
+        _arguments:
+          tag_name: tag
     defaultController: 'Post::listRecentPostsAction'
     aspects:
       tag_name:
         type: PersistedPatternMapper
-        tableName: 'tx_blog_domain_model_tag'
+        tableName: tx_blog_domain_model_tag
         routeFieldPattern: '^(?P<title>.+)$'
         routeFieldResult: '{title}'
   BlogAuthorPlugin:
     type: Extbase
-    limitToPages: [15]
+    limitToPages:
+      - 15
     extension: Blog
     plugin: AuthorPosts
     routes:
-      - { routePath: '/{author_name}', _controller: 'Post::listPostsByAuthor', _arguments: {'author_name': 'author'} }
+      -
+        routePath: '/{author_name}'
+        _controller: 'Post::listPostsByAuthor'
+        _arguments:
+          author_name: author
     defaultController: 'Post::listRecentPostsAction'
     aspects:
       author_name:
         type: PersistedPatternMapper
-        tableName: 'tx_blog_domain_model_author'
+        tableName: tx_blog_domain_model_author
         routeFieldPattern: '^(?P<name>.+)$'
         routeFieldResult: '{name}'
   BlogArchivePlugin:
     type: Extbase
-    limitToPages: [16]
+    limitToPages:
+      - 16
     extension: Blog
     plugin: Archive
     routes:
-      - { routePath: '/{year}', _controller: 'Post::listPostsByDate', _arguments: {'year': 'year'} }
-      - { routePath: '/{year}/{month}', _controller: 'Post::listPostsByDate', _arguments: {'year': 'year', 'month': 'month'} }
+      -
+        routePath: '/{year}'
+        _controller: 'Post::listPostsByDate'
+        _arguments:
+          year: year
+      -
+        routePath: '/{year}/{month}'
+        _controller: 'Post::listPostsByDate'
+        _arguments:
+          year: year
+          month: month
     defaultController: 'Post::listRecentPostsAction'
     defaults:
       month: null
@@ -97,7 +125,8 @@ routeEnhancers:
           november: 11
           december: 12
         localeMap:
-          - locale: 'de_.*'
+          -
+            locale: 'de_.*'
             map:
               januar: 1
               februar: 2
