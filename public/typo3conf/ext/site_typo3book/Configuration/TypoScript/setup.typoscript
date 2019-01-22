@@ -51,7 +51,7 @@ page {
 
 }
 
-#Usage: "<f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 0}" />"
+#Usage: "<f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 0, slide: '-1'}" />"
 lib.renderContent = CONTENT
 lib.renderContent {
     table = tt_content
@@ -60,6 +60,7 @@ lib.renderContent {
         where = colPos = {field:colPos}
         where.insertData = 1
     }
+    slide.field = slide
 }
 
 # Display errors in frontend for development. Set to 1 to hide errors
