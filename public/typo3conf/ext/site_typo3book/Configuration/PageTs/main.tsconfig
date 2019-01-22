@@ -1,6 +1,7 @@
 # Include backend layouts
-<INCLUDE_TYPOSCRIPT: source="FILE:EXT:site_typo3book/Configuration/PageTs/BackendLayouts/Startpage.tsconfig">
-<INCLUDE_TYPOSCRIPT: source="FILE:EXT:site_typo3book/Configuration/PageTs/BackendLayouts/Contentpage.tsconfig">
+@import 'EXT:site_typo3book/Configuration/PageTs/BackendLayouts/Startpage.tsconfig'
+@import 'EXT:site_typo3book/Configuration/PageTs/BackendLayouts/Contentpage.tsconfig'
+@import 'EXT:site_typo3book/Configuration/PageTs/BackendLayouts/Blogpage.tsconfig'
 
 # Include other tsconfig
-<INCLUDE_TYPOSCRIPT: source="FILE:EXT:site_typo3book/Configuration/PageTs/TCEMAIN.tsconfig">
+@import ':site_typo3book/Configuration/PageTs/TCEMAIN.tsconfig'

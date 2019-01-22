@@ -2,11 +2,22 @@
     <f:render partial="Header" arguments="{menu: menu, homePageUid: homePageUid}"/>
     <div id="main">
         <article class="post">
+            <header>
+                <div class="title">
+                    <h2>{data.title}</h2>
+                    <p>{data.subtitle}</p>
+                </div>
+                <div class="meta">
+                    <time class="published">
+                        <f:format.date format="d.m.Y">{data.publish_date}</f:format.date>
+                    </time>
+                </div>
+            </header>
             <f:cObject typoscriptObjectPath="lib.renderContent" data="{colPos: 0}" />
         </article>
     </div>
     <section id="sidebar">
-        <f:render partial="SidebarIntro" arguments="{title: data.title, subtitle: data.subtitle}" />
+        <f:render partial="SidebarIntro" arguments="{title: 'Blog'}" />
         <!-- Mini Posts -->
         <section>
             <div class="mini-posts">
