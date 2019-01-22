@@ -4,4 +4,8 @@ plugin.tx_blog {
         partialRootPaths.10 = EXT:site_typo3book/Resources/Private/Plugins/blog/Partials/
         layoutRootPaths.10 = EXT:site_typo3book/Resources/Private/Plugins/blog/Layouts/
     }
+    settings.sidebarWidgets >
+    settings.sidebarWidgets {
+        10 = tt_content.list.20.blog_recentpostswidget
+    }
 }
