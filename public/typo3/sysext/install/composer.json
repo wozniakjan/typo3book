@@ -15,9 +15,9 @@
 	"require": {
 		"nikic/php-parser": "^4.0",
 		"symfony/finder": "^4.1",
-		"typo3/cms-core": "9.5.3",
-		"typo3/cms-extbase": "9.5.3",
-		"typo3/cms-fluid": "9.5.3"
+		"typo3/cms-core": "9.5.4",
+		"typo3/cms-extbase": "9.5.4",
+		"typo3/cms-fluid": "9.5.4"
 	},
 	"conflict": {
 		"typo3/cms": "*"
@@ -26,9 +26,6 @@
 		"install": "*"
 	},
 	"extra": {
-		"branch-alias": {
-			"dev-master": "9.5.x-dev"
-		},
 		"typo3/cms": {
 			"Package": {
 				"protected": true,

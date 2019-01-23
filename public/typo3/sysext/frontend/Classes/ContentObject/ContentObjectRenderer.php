@@ -48,6 +48,7 @@ use TYPO3\CMS\Core\Service\DependencyOrderingService;
 use TYPO3\CMS\Core\Service\FlexFormService;
 use TYPO3\CMS\Core\Service\MarkerBasedTemplateService;
 use TYPO3\CMS\Core\Site\Entity\Site;
+use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\TimeTracker\TimeTracker;
 use TYPO3\CMS\Core\TypoScript\Parser\TypoScriptParser;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
@@ -5098,10 +5099,24 @@ class ContentObjectRenderer implements LoggerAwareInterface
                         $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
                         $site = $request ? $request->getAttribute('site') : null;
                         if ($site instanceof Site) {
-                            try {
-                                $retVal = ArrayUtility::getValueByPath($site->getConfiguration(), $key, '.');
-                            } catch (MissingArrayPathException $exception) {
-                                $this->logger->warning(sprintf('getData() with "%s" failed', $key), ['exception' => $exception]);
+                            if ($key === 'identifier') {
+                                $retVal = $site->getIdentifier();
+                            } else {
+                                try {
+                                    $retVal = ArrayUtility::getValueByPath($site->getConfiguration(), $key, '.');
+                                } catch (MissingArrayPathException $exception) {
+                                    $this->logger->warning(sprintf('getData() with "%s" failed', $key), ['exception' => $exception]);
+                                }
+                            }
+                        }
+                        break;
+                    case 'sitelanguage':
+                        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+                        $siteLanguage = $request ? $request->getAttribute('language') : null;
+                        if ($siteLanguage instanceof SiteLanguage) {
+                            $config = $siteLanguage->toArray();
+                            if (isset($config[$key])) {
+                                $retVal = $config[$key];
                             }
                         }
                         break;
@@ -5399,7 +5414,8 @@ class ContentObjectRenderer implements LoggerAwareInterface
             /** @var AbstractTypolinkBuilder $linkBuilder */
             $linkBuilder = GeneralUtility::makeInstance(
                 $GLOBALS['TYPO3_CONF_VARS']['FE']['typolinkBuilder'][$linkDetails['type']],
-                $this
+                $this,
+                $tsfe
             );
             try {
                 list($this->lastTypoLinkUrl, $linkText, $target) = $linkBuilder->build($linkDetails, $linkText, $target, $conf);
