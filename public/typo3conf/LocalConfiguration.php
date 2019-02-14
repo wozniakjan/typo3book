@@ -61,7 +61,7 @@ return [
         'processor_path_lzw' => '/usr/bin/',
     ],
     'MAIL' => [
-        'transport' => 'sendmail',
+        'transport' => 'mail',
         'transport_sendmail_command' => '/usr/local/bin/mailhog sendmail test@example.org --smtp-addr 127.0.0.1:1025',
         'transport_smtp_encrypt' => '',
         'transport_smtp_password' => '',
