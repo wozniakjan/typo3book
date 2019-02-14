@@ -18,6 +18,6 @@ plugin.tx_blog {
         tagUid = 14
         authorUid = 15
         archiveUid = 16
-        storagePid = 12
+        storagePid = 11
     }
 }
