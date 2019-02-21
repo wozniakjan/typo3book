@@ -1,5 +1,5 @@
 @import 'EXT:fluid_styled_content/Configuration/TypoScript/setup.typoscript'
-@import 'EXT:blog/Configuration/TypoScript/Static/setup.txt'
+@import 'EXT:blog/Configuration/TypoScript/Static/setup.typoscript'
 @import 'EXT:site_typo3book/Configuration/TypoScript/Plugins/blog.typoscript'
 
 # Default PAGE object:
