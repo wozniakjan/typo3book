@@ -10,19 +10,6 @@ declare(strict_types = 1);
 
 namespace T3G\AgencyPack\Blog\Controller;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
 use T3G\AgencyPack\Blog\Domain\Model\Comment;
 use T3G\AgencyPack\Blog\Domain\Model\Post;
 use T3G\AgencyPack\Blog\Domain\Repository\PostRepository;
@@ -35,14 +22,8 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 
-/**
- * Comment frontend.
- */
 class CommentController extends ActionController
 {
-    /**
-     * @var array
-     */
     protected static $messages = [
         CommentService::STATE_ERROR => [
             'title' => 'message.addComment.error.title',
@@ -123,34 +104,33 @@ class CommentController extends ActionController
     /**
      * Show comment form.
      *
-     * @param Post|null $post
      * @param Comment|null $comment
      * @throws \TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException
      * @throws \TYPO3\CMS\Extbase\Persistence\Exception\InvalidQueryException
      */
-    public function formAction(Post $post = null, Comment $comment = null): void
+    public function formAction(Comment $comment = null): void
     {
-        if ($post === null) {
-            $post = $this->postRepository->findCurrentPost();
-        }
-        $this->view->assign('post', $post);
+        $this->view->assign('post', $this->postRepository->findCurrentPost());
         $this->view->assign('comment', $comment);
     }
 
     /**
      * Add comment to blog post.
      *
-     * @param Post $post
      * @param Comment $comment
+     * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
      * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
+     * @throws \TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException
      * @throws \TYPO3\CMS\Extbase\Mvc\Exception\StopActionException
      * @throws \TYPO3\CMS\Extbase\Mvc\Exception\UnsupportedRequestTypeException
      * @throws \TYPO3\CMS\Extbase\Persistence\Exception\IllegalObjectTypeException
+     * @throws \TYPO3\CMS\Extbase\Persistence\Exception\InvalidQueryException
      * @throws \TYPO3\CMS\Extbase\Persistence\Exception\UnknownObjectException
      */
-    public function addCommentAction(Post $post, Comment $comment): void
+    public function addCommentAction(Comment $comment): void
     {
         $this->commentService->injectSettings($this->settings['comments']);
+        $post = $this->postRepository->findCurrentPost();
         $state = $this->commentService->addComment($post, $comment);
         $this->addFlashMessage(
             LocalizationUtility::translate(self::$messages[$state]['text'], 'blog'),
@@ -164,6 +144,7 @@ class CommentController extends ActionController
                     'comment' => $comment,
                     'post' => $post,
                 ]));
+            $this->blogCacheService->flushCacheByTag('tx_blog_post_' . $post->getUid());
         }
         $this->redirectToUri(
             $this->controllerContext

@@ -10,27 +10,10 @@ declare(strict_types = 1);
 
 namespace T3G\AgencyPack\Blog\Domain\Model;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
+use TYPO3\CMS\Extbase\Annotation as Extbase;
 use TYPO3\CMS\Extbase\DomainObject\AbstractEntity;
 use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
 
-/**
- * Class Tag.
- *
- * This model is a representation of the tag table.
- * Tags can be assigned to blog posts.
- */
 class Tag extends AbstractEntity
 {
     /**
@@ -39,6 +22,11 @@ class Tag extends AbstractEntity
      * @var string
      */
     protected $title;
+
+    /**
+     * @var string
+     */
+    protected $slug;
 
     /**
      * The description of the tag. Used for SEO meta description.
@@ -51,6 +39,7 @@ class Tag extends AbstractEntity
      * The additional content of the tag. Used to enrich the SEO rating of tag pages.
      *
      * @var \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\T3G\AgencyPack\Blog\Domain\Model\Content>
+     * @Extbase\ORM\Lazy
      */
     protected $content;
 
@@ -88,6 +77,14 @@ class Tag extends AbstractEntity
     {
         $this->title = $title;
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSlug(): ?string
+    {
+        return $this->slug;
     }
 
     /**

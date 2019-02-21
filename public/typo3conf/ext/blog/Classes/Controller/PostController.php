@@ -10,19 +10,6 @@ declare(strict_types = 1);
 
 namespace T3G\AgencyPack\Blog\Controller;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
 use T3G\AgencyPack\Blog\Domain\Model\Author;
 use T3G\AgencyPack\Blog\Domain\Model\Category;
 use T3G\AgencyPack\Blog\Domain\Model\Post;
@@ -33,15 +20,13 @@ use T3G\AgencyPack\Blog\Domain\Repository\PostRepository;
 use T3G\AgencyPack\Blog\Domain\Repository\TagRepository;
 use T3G\AgencyPack\Blog\Service\CacheService;
 use T3G\AgencyPack\Blog\Service\MetaService;
+use T3G\AgencyPack\Blog\Utility\ArchiveUtility;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Extbase\Mvc\View\ViewInterface;
 use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
-/**
- * Posts related controller.
- */
 class PostController extends ActionController
 {
     /**
@@ -111,13 +96,12 @@ class PostController extends ActionController
 
     /**
      * @param ViewInterface $view
-     * @throws \TYPO3\CMS\Extbase\Mvc\Exception\NoSuchArgumentException
      */
     protected function initializeView(ViewInterface $view): void
     {
         parent::initializeView($view);
-        if ($this->request->hasArgument('format') && $this->request->getArgument('format') === 'rss') {
-            $action = '.' . $this->request->getArgument('action');
+        if ($this->request->getFormat() === 'rss') {
+            $action = '.' . $this->request->getControllerActionName();
             $arguments = [];
             switch ($action) {
                 case '.listPostsByCategory':
@@ -136,13 +120,18 @@ class PostController extends ActionController
                         $arguments[] = $this->arguments['tag']->getValue()->getTitle();
                     }
                     break;
+                case '.listPostsByAuthor':
+                    if (isset($this->arguments['author'])) {
+                        $arguments[] = $this->arguments['author']->getValue()->getName();
+                    }
+                    break;
                 default:
             }
             $feedData = [
                 'title' => LocalizationUtility::translate('feed.title' . $action, 'blog', $arguments),
                 'description' => LocalizationUtility::translate('feed.description' . $action, 'blog', $arguments),
                 'language' => $this->getTypoScriptFontendController()->sys_language_isocode,
-                'link' => $this->uriBuilder->setUseCacheHash(false)->setArgumentsToBeExcludedFromQueryString(['id'])->setCreateAbsoluteUri(true)->setAddQueryString(true)->build(),
+                'link' => $this->uriBuilder->getRequest()->getRequestUri(),
                 'date' => date('r'),
             ];
             $this->view->assign('feed', $feedData);
@@ -155,7 +144,6 @@ class PostController extends ActionController
     /**
      * Show a list of recent posts.
      *
-     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
      * @throws \TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException
      * @throws \TYPO3\CMS\Extbase\Persistence\Exception\InvalidQueryException
      */
@@ -167,17 +155,12 @@ class PostController extends ActionController
             ? $this->postRepository->findAll()
             : $this->postRepository->findAllWithLimit($maximumItems);
 
-        foreach ($posts as $post) {
-            $this->blogCacheService->addTagsForPost($post);
-        }
-
         $this->view->assign('posts', $posts);
     }
 
     /**
      * @param int $year
      * @param int $month
-     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
      * @throws \TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException
      * @throws \TYPO3\CMS\Extbase\Mvc\Exception\StopActionException
      * @throws \TYPO3\CMS\Extbase\Mvc\Exception\UnsupportedRequestTypeException
@@ -186,39 +169,36 @@ class PostController extends ActionController
      */
     public function listPostsByDateAction(int $year = null, int $month = null): void
     {
-        if (null === $year) {
-            // we need at least the year
-            $this->redirect('listRecentPosts');
+        if ($year === null) {
+            $posts = $this->postRepository->findMonthsAndYearsWithPosts();
+            $this->view->assign('archiveData', ArchiveUtility::extractDataFromPosts($posts));
+        } else {
+            $dateTime = new \DateTimeImmutable(sprintf('%d-%d-1', $year, $month ?? 1));
+            $posts = $this->postRepository->findByMonthAndYear($year, $month);
+            $this->view->assignMultiple([
+                'month' => $month,
+                'year' => $year,
+                'timestamp' => $dateTime->getTimestamp(),
+                'posts' => $posts,
+            ]);
+            $title = str_replace([
+                '###MONTH###',
+                '###MONTH_NAME###',
+                '###YEAR###',
+            ], [
+                $month,
+                $dateTime->format('F'),
+                $year,
+            ], LocalizationUtility::translate('meta.title.listPostsByDate', 'blog'));
+            MetaService::set(MetaService::META_TITLE, $title);
+            MetaService::set(MetaService::META_DESCRIPTION, LocalizationUtility::translate('meta.description.listPostsByDate', 'blog'));
         }
-        $dateTime = new \DateTimeImmutable(sprintf('%d-%d-1', $year, $month ?? 1));
-        $posts = $this->postRepository->findByMonthAndYear($year, $month);
-        foreach ($posts as $post) {
-            $this->blogCacheService->addTagsForPost($post);
-        }
-        $this->view->assignMultiple([
-            'month' => $month,
-            'year' => $year,
-            'timestamp' => $dateTime->getTimestamp(),
-            'posts' => $posts,
-        ]);
-        $title = str_replace([
-            '###MONTH###',
-            '###MONTH_NAME###',
-            '###YEAR###',
-        ], [
-            $month,
-            $dateTime->format('F'),
-            $year,
-        ], LocalizationUtility::translate('meta.title.listPostsByDate', 'blog'));
-        MetaService::set(MetaService::META_TITLE, $title);
-        MetaService::set(MetaService::META_DESCRIPTION, LocalizationUtility::translate('meta.description.listPostsByDate', 'blog'));
     }
 
     /**
      * Show a list of posts by given category.
      *
      * @param Category|null $category
-     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
      * @throws \TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException
      * @throws \TYPO3\CMS\Extbase\Persistence\Exception\InvalidQueryException
      */
@@ -246,9 +226,6 @@ class PostController extends ActionController
             MetaService::set(MetaService::META_TITLE, $category->getTitle());
             MetaService::set(MetaService::META_DESCRIPTION, $category->getDescription());
             MetaService::set(MetaService::META_CATEGORIES, [$category->getTitle()]);
-            foreach ($posts as $post) {
-                $this->blogCacheService->addTagsForPost($post);
-            }
         }
     }
 
@@ -256,7 +233,6 @@ class PostController extends ActionController
      * Show a list of posts by given category.
      *
      * @param Author|null $author
-     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
      * @throws \TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException
      * @throws \TYPO3\CMS\Extbase\Persistence\Exception\InvalidQueryException
      */
@@ -270,9 +246,6 @@ class PostController extends ActionController
             $this->view->assign('author', $author);
             MetaService::set(MetaService::META_TITLE, $author->getName());
             MetaService::set(MetaService::META_DESCRIPTION, $author->getBio());
-            foreach ($posts as $post) {
-                $this->blogCacheService->addTagsForPost($post);
-            }
         }
     }
 
@@ -280,7 +253,6 @@ class PostController extends ActionController
      * Show a list of posts by given tag.
      *
      * @param Tag|null $tag
-     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
      * @throws \TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException
      * @throws \TYPO3\CMS\Extbase\Persistence\Exception\InvalidQueryException
      */
@@ -295,9 +267,6 @@ class PostController extends ActionController
             MetaService::set(MetaService::META_TITLE, $tag->getTitle());
             MetaService::set(MetaService::META_DESCRIPTION, $tag->getDescription());
             MetaService::set(MetaService::META_TAGS, [$tag->getTitle()]);
-            foreach ($posts as $post) {
-                $this->blogCacheService->addTagsForPost($post);
-            }
         }
     }
 
@@ -350,9 +319,9 @@ class PostController extends ActionController
     {
         $post = $this->postRepository->findCurrentPost();
         $posts = $this->postRepository->findRelatedPosts(
-            $this->settings['relatedPosts']['categoryMultiplier'],
-            $this->settings['relatedPosts']['tagMultiplier'],
-            $this->settings['relatedPosts']['limit']
+            (int)$this->settings['relatedPosts']['categoryMultiplier'],
+            (int)$this->settings['relatedPosts']['tagMultiplier'],
+            (int)$this->settings['relatedPosts']['limit']
         );
         $this->view->assign('currentPost', $post);
         $this->view->assign('posts', $posts);

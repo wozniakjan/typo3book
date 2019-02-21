@@ -10,28 +10,14 @@ declare(strict_types = 1);
 
 namespace T3G\AgencyPack\Blog\Domain\Model;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
 use T3G\AgencyPack\Blog\Domain\Repository\CommentRepository;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Annotation as Extbase;
 use TYPO3\CMS\Extbase\DomainObject\AbstractEntity;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
 
-/**
- * Class Post.
- */
 class Post extends AbstractEntity
 {
     /**
@@ -73,6 +59,7 @@ class Post extends AbstractEntity
      * The blog post categories.
      *
      * @var \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\T3G\AgencyPack\Blog\Domain\Model\Category>
+     * @Extbase\ORM\Lazy
      */
     protected $categories;
 
@@ -87,6 +74,7 @@ class Post extends AbstractEntity
      * Comments of the blog post.
      *
      * @var \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\T3G\AgencyPack\Blog\Domain\Model\Comment>
+     * @Extbase\ORM\Lazy
      */
     protected $comments;
 
@@ -94,6 +82,7 @@ class Post extends AbstractEntity
      * Tags of the blog post.
      *
      * @var \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\T3G\AgencyPack\Blog\Domain\Model\Tag>
+     * @Extbase\ORM\Lazy
      */
     protected $tags;
 
@@ -106,6 +95,7 @@ class Post extends AbstractEntity
 
     /**
      * @var \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\TYPO3\CMS\Extbase\Domain\Model\FileReference>
+     * @Extbase\ORM\Lazy
      */
     protected $media;
 
@@ -121,6 +111,7 @@ class Post extends AbstractEntity
 
     /**
      * @var \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\T3G\AgencyPack\Blog\Domain\Model\Author>
+     * @Extbase\ORM\Lazy
      */
     protected $authors;
 

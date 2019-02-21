@@ -10,18 +10,6 @@ declare(strict_types = 1);
 
 namespace T3G\AgencyPack\Blog\Domain\Model;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
 use T3G\AgencyPack\Blog\AvatarProvider\GravatarProvider;
 use T3G\AgencyPack\Blog\AvatarProviderInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -30,11 +18,6 @@ use TYPO3\CMS\Extbase\Domain\Model\FileReference;
 use TYPO3\CMS\Extbase\DomainObject\AbstractEntity;
 use TYPO3\CMS\Extbase\Persistence\ObjectStorage;
 
-/**
- * Class Author.
- *
- * This model is a representation of the author table.
- */
 class Author extends AbstractEntity
 {
     /**
@@ -51,6 +34,11 @@ class Author extends AbstractEntity
      * @var string
      */
     protected $name = '';
+
+    /**
+     * @var string
+     */
+    protected $slug;
 
     /**
      * @var string
@@ -181,6 +169,14 @@ class Author extends AbstractEntity
     {
         $this->name = $name;
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSlug(): ?string
+    {
+        return $this->slug;
     }
 
     /**

@@ -32,7 +32,7 @@
 		"typo3/cms-tstemplate": "^9.5",
 		"typo3/cms-viewpage": "^9.5",
 		"typo3/cms-lowlevel": "^9.5",
-		"t3g/blog": "^9.0"
+		"t3g/blog": "^9.1"
 	},
 	"scripts":{
 		"typo3-cms-scripts": [

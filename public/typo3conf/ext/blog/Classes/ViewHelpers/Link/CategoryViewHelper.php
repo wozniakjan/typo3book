@@ -10,29 +10,11 @@ declare(strict_types = 1);
 
 namespace T3G\AgencyPack\Blog\ViewHelpers\Link;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
 use T3G\AgencyPack\Blog\Domain\Model\Category;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 
-/**
- * Class CategoryViewHelper.
- */
 class CategoryViewHelper extends AbstractTagBasedViewHelper
 {
-    /**
-     * CategoryViewHelper constructor.
-     */
     public function __construct()
     {
         $this->tagName = 'a';
@@ -65,22 +47,18 @@ class CategoryViewHelper extends AbstractTagBasedViewHelper
         /** @var Category $category */
         $category = $this->arguments['category'];
         $pageUid = (int)$this->getTypoScriptFrontendController()->tmpl->setup['plugin.']['tx_blog.']['settings.']['categoryUid'];
-        $additionalParams = [
-            'tx_blog_category' => [
-                'category' => $category->getUid(),
-            ],
+        $arguments = [
+            'category' => $category->getUid(),
         ];
         $uriBuilder = $this->renderingContext->getControllerContext()->getUriBuilder();
         $uriBuilder->reset()
             ->setTargetPageUid($pageUid)
-            ->setUseCacheHash(true)
-            ->setArguments($additionalParams);
+            ->setUseCacheHash(true);
         if ($rssFormat) {
             $uriBuilder
-                ->setFormat('rss')
                 ->setTargetPageType($this->getTypoScriptFrontendController()->tmpl->setup['blog_rss_category.']['typeNum']);
         }
-        $uri = $uriBuilder->uriFor('listPostsByCategory', [], 'Post');
+        $uri = $uriBuilder->uriFor('listPostsByCategory', $arguments, 'Post', 'Blog', 'Category');
 
         if ($uri !== '') {
             $linkText = $this->renderChildren() ?: $category->getTitle();

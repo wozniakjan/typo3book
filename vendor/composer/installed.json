@@ -2635,12 +2635,18 @@
     },
     {
         "name": "t3g/blog",
-        "version": "9.0.0",
-        "version_normalized": "9.0.0.0",
+        "version": "9.1.1",
+        "version_normalized": "9.1.1.0",
         "source": {
             "type": "git",
-            "url": "https://bitbucket.typo3.com/scm/ext/blog.git",
-            "reference": "e6916d761e06f6c45054f863ebdac764437863fd"
+            "url": "https://github.com/TYPO3GmbH/blog.git",
+            "reference": "d11df181e07de0ba31beb017ddb05c9095563aed"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/TYPO3GmbH/blog/zipball/d11df181e07de0ba31beb017ddb05c9095563aed",
+            "reference": "d11df181e07de0ba31beb017ddb05c9095563aed",
+            "shasum": ""
         },
         "require": {
             "ext-json": "*",
@@ -2655,21 +2661,24 @@
             "typo3/cms-fluid": "^9.5.1",
             "typo3/cms-frontend": "^9.5.1",
             "typo3/cms-install": "^9.5.1",
-            "typo3fluid/fluid": "2.5.*"
+            "typo3fluid/fluid": "^2.5.0"
         },
         "require-dev": {
+            "bk2k/extension-helper": "^1.0.2",
             "friendsofphp/php-cs-fixer": "^2.12",
             "roave/security-advisories": "dev-master",
-            "typo3/testing-framework": "dev-master"
+            "t3g/blog-template-test": "^1.0.0",
+            "typo3/testing-framework": "^4.11"
         },
-        "time": "2018-11-05T11:56:47+00:00",
+        "time": "2019-02-15T10:21:36+00:00",
         "type": "typo3-cms-extension",
         "extra": {
             "typo3/cms": {
-                "web-dir": "."
+                "cms-package-dir": "{$vendor-dir}/typo3/cms",
+                "web-dir": ".build/web"
             }
         },
-        "installation-source": "source",
+        "installation-source": "dist",
         "autoload": {
             "psr-4": {
                 "T3G\\AgencyPack\\Blog\\": "Classes/"

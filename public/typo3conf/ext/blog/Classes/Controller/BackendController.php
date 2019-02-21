@@ -10,19 +10,6 @@ declare(strict_types = 1);
 
 namespace T3G\AgencyPack\Blog\Controller;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
 use T3G\AgencyPack\Blog\Domain\Model\Comment;
 use T3G\AgencyPack\Blog\Domain\Repository\CommentRepository;
 use T3G\AgencyPack\Blog\Domain\Repository\PostRepository;
@@ -30,7 +17,6 @@ use T3G\AgencyPack\Blog\Service\CacheService;
 use T3G\AgencyPack\Blog\Service\SetupService;
 use TYPO3\CMS\Backend\Template\Components\ButtonBar;
 use TYPO3\CMS\Backend\Template\ModuleTemplate;
-use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
@@ -39,9 +25,6 @@ use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 
-/**
- * Class BackendController.
- */
 class BackendController extends ActionController
 {
     /**
@@ -123,34 +106,22 @@ class BackendController extends ActionController
         $pageRenderer->addCssFile('../typo3conf/ext/blog/Resources/Public/Css/backend.css', 'stylesheet', 'all', '', false);
     }
 
-    /**
-     *
-     */
     public function initializeSetupWizardAction(): void
     {
         $this->moduleTemplate->getPageRenderer()->loadRequireJsModule('TYPO3/CMS/Blog/SetupWizard');
     }
 
-    /**
-     * @throws \BadFunctionCallException
-     */
     public function initializePostsAction(): void
     {
         $this->initializeDataTables();
     }
 
-    /**
-     * @throws \BadFunctionCallException
-     */
     public function initializeCommentsAction(): void
     {
         $this->initializeDataTables();
+        $this->moduleTemplate->getPageRenderer()->loadRequireJsModule('TYPO3/CMS/Blog/MassUpdate');
     }
 
-    /**
-     * initialize DataTables
-     * @throws \BadFunctionCallException
-     */
     protected function initializeDataTables(): void
     {
         $blogPath = ExtensionManagementUtility::extPath('blog', 'Resources/Public/JavaScript/');
@@ -183,9 +154,7 @@ class BackendController extends ActionController
     public function setupWizardAction(): string
     {
         return $this->render('Backend/SetupWizard.html', [
-            'composerMode' => Environment::isComposerMode(),
             'blogSetups' => $this->setupService->determineBlogSetups(),
-            'templateExists' => ExtensionManagementUtility::isLoaded('blog_template'),
         ]);
     }
 
@@ -233,35 +202,42 @@ class BackendController extends ActionController
     }
 
     /**
-     * @param Comment $comment
      * @param string $status
-     * @param string|null $filter
+     * @param string $filter
      * @param int $blogSetup
+     * @param array $comments
+     * @param int $comment
      * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
      * @throws \TYPO3\CMS\Extbase\Mvc\Exception\StopActionException
      * @throws \TYPO3\CMS\Extbase\Mvc\Exception\UnsupportedRequestTypeException
      * @throws \TYPO3\CMS\Extbase\Persistence\Exception\IllegalObjectTypeException
      * @throws \TYPO3\CMS\Extbase\Persistence\Exception\UnknownObjectException
      */
-    public function updateCommentStatusAction(Comment $comment, string $status, string $filter = null, int $blogSetup = null): void
+    public function updateCommentStatusAction(string $status, string $filter = null, int $blogSetup = null, array $comments = [], int $comment = null): void
     {
-        $updateComment = true;
-        switch ($status) {
-            case 'approve':
-                $comment->setStatus(Comment::STATUS_APPROVED);
-                break;
-            case 'decline':
-                $comment->setStatus(Comment::STATUS_DECLINED);
-                break;
-            case 'delete':
-                $comment->setStatus(Comment::STATUS_DELETED);
-                break;
-            default:
-                $updateComment = false;
+        if ($comment !== null) {
+            $comments['__identity'][] = $comment;
         }
-        if ($updateComment) {
-            $this->commentRepository->update($comment);
-            $this->blogCacheService->flushCacheByTag('tx_blog_comment_' . $comment->getUid());
+        foreach ($comments['__identity'] as $commentId) {
+            $comment = $this->commentRepository->findByUid((int)$commentId);
+            $updateComment = true;
+            switch ($status) {
+                case 'approve':
+                    $comment->setStatus(Comment::STATUS_APPROVED);
+                    break;
+                case 'decline':
+                    $comment->setStatus(Comment::STATUS_DECLINED);
+                    break;
+                case 'delete':
+                    $comment->setStatus(Comment::STATUS_DELETED);
+                    break;
+                default:
+                    $updateComment = false;
+            }
+            if ($updateComment) {
+                $this->commentRepository->update($comment);
+                $this->blogCacheService->flushCacheByTag('tx_blog_comment_' . $comment->getUid());
+            }
         }
         $this->redirect('comments', null, null, ['filter' => $filter, 'blogSetup' => $blogSetup]);
     }

@@ -10,25 +10,14 @@ declare(strict_types = 1);
 
 namespace T3G\AgencyPack\Blog\Form\Wizards;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Form\FormDataCompiler;
 use TYPO3\CMS\Backend\Form\FormDataGroup\TcaDatabaseRecord;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
+use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\FileReference;
 use TYPO3\CMS\Core\Resource\FileRepository;
@@ -38,10 +27,6 @@ use TYPO3\CMS\Core\Utility\StringUtility;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Extbase\Service\ImageService;
 
-/**
- * Class SocialImageAjaxController
- *
- */
 class SocialImageAjaxController
 {
     /**
@@ -51,14 +36,13 @@ class SocialImageAjaxController
 
     /**
      * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
      *
      * @return ResponseInterface
      * @throws \TYPO3\CMS\Core\Resource\Exception\ExistingTargetFileNameException
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
-    public function saveImageAction(ServerRequestInterface $request, ResponseInterface $response) : ResponseInterface
+    public function saveImageAction(ServerRequestInterface $request) : ResponseInterface
     {
         $parsedBody = $request->getParsedBody();
         $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $parsedBody['data']));
@@ -71,9 +55,8 @@ class SocialImageAjaxController
             $result['status'] = 'error';
             $result['message'] = 'only PNG files are allowed!';
         } else {
-            $resourceFactory = ResourceFactory::getInstance();
-            $storage = $resourceFactory->getDefaultStorage();
-            $tempFileName = PATH_site . 'typo3temp/' . uniqid('', true);
+            $storage = ResourceFactory::getInstance()->getDefaultStorage();
+            $tempFileName = Environment::getVarPath() . '/' . uniqid('', true);
             if ($storage !== null && GeneralUtility::writeFileToTypo3tempDir($tempFileName, $imageData) === null) {
                 /** @var File $newFile */
                 $newFile = $storage->addFile(
@@ -89,14 +72,11 @@ class SocialImageAjaxController
                 $result['fields'] = $this->getFalFields($parsedBody['table'], (int)$parsedBody['uid']);
             }
         }
-
-        $response->getBody()->write(json_encode($result));
-        return $response;
+        return GeneralUtility::makeInstance(JsonResponse::class, $result);
     }
 
     /**
      * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
      *
      * @return ResponseInterface
      * @throws \TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException
@@ -104,7 +84,7 @@ class SocialImageAjaxController
      * @throws \UnexpectedValueException
      * @throws \InvalidArgumentException
      */
-    public function existingRelationsAction(ServerRequestInterface $request, ResponseInterface $response) : ResponseInterface
+    public function existingRelationsAction(ServerRequestInterface $request) : ResponseInterface
     {
         $parsedBody = $request->getParsedBody();
 
@@ -121,22 +101,20 @@ class SocialImageAjaxController
                 ];
             }
         } else {
-            $this->createFalRelation($parsedBody);
+            $results[] = $this->createFalRelation($parsedBody);
         }
-        $response->getBody()->write(json_encode($results));
-        return $response;
+        return GeneralUtility::makeInstance(JsonResponse::class, $results);
     }
 
     /**
      * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
      *
      * @return ResponseInterface
      * @throws \RuntimeException
      * @throws \TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException
      * @throws \InvalidArgumentException
      */
-    public function replaceRelationAction(ServerRequestInterface $request, ResponseInterface $response) : ResponseInterface
+    public function replaceRelationAction(ServerRequestInterface $request) : ResponseInterface
     {
         $parsedBody = $request->getParsedBody();
 
@@ -148,26 +126,21 @@ class SocialImageAjaxController
         $dataHandler->start($data, $cmd);
         $dataHandler->process_cmdmap();
 
-        $results = $this->createFalRelation($parsedBody);
-        $response->getBody()->write(json_encode($results));
-        return $response;
+        return GeneralUtility::makeInstance(JsonResponse::class, $this->createFalRelation($parsedBody));
     }
 
     /**
      * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
      *
      * @return ResponseInterface
      * @throws \RuntimeException
      * @throws \TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException
      * @throws \InvalidArgumentException
      */
-    public function insertAfterRelationAction(ServerRequestInterface $request, ResponseInterface $response) : ResponseInterface
+    public function insertAfterRelationAction(ServerRequestInterface $request) : ResponseInterface
     {
         $parsedBody = $request->getParsedBody();
-        $results = $this->createFalRelation($parsedBody);
-        $response->getBody()->write(json_encode($results));
-        return $response;
+        return GeneralUtility::makeInstance(JsonResponse::class, $this->createFalRelation($parsedBody));
     }
 
     /**

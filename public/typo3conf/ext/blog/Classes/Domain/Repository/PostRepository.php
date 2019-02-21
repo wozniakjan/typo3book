@@ -10,23 +10,12 @@ declare(strict_types = 1);
 
 namespace T3G\AgencyPack\Blog\Domain\Repository;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
 use T3G\AgencyPack\Blog\Constants;
 use T3G\AgencyPack\Blog\Domain\Model\Author;
 use T3G\AgencyPack\Blog\Domain\Model\Category;
 use T3G\AgencyPack\Blog\Domain\Model\Post;
 use T3G\AgencyPack\Blog\Domain\Model\Tag;
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\RootlineUtility;
@@ -39,9 +28,6 @@ use TYPO3\CMS\Extbase\Persistence\QueryInterface;
 use TYPO3\CMS\Extbase\Persistence\Repository;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
-/**
- * Class PostRepository.
- */
 class PostRepository extends Repository
 {
     /**
@@ -116,6 +102,7 @@ class PostRepository extends Repository
      * @return QueryInterface
      * @throws \TYPO3\CMS\Extbase\Configuration\Exception\InvalidConfigurationTypeException
      * @throws \TYPO3\CMS\Extbase\Persistence\Exception\InvalidQueryException
+     * @throws \TYPO3\CMS\Core\Context\Exception\AspectNotFoundException
      */
     protected function getFindAllQuery(): QueryInterface
     {
@@ -129,6 +116,15 @@ class PostRepository extends Repository
             $query->equals('archiveDate', 0),
             $query->greaterThanOrEqual('archiveDate', time()),
         ]);
+
+        if (GeneralUtility::makeInstance(Context::class)->getAspect('language')->getId() === 0) {
+            $constraints[] = $query->logicalOr([
+                $query->equals('l18n_cfg', 0),
+                $query->equals('l18n_cfg', 2)
+            ]);
+        } else {
+            $constraints[] = $query->lessThan('l18n_cfg', 2);
+        }
         $query->matching($query->logicalAnd($constraints));
 
         return $query;
@@ -405,8 +401,8 @@ class PostRepository extends Repository
     /**
      * @return TypoScriptFrontendController
      */
-    protected function getTypoScriptFrontendController(): TypoScriptFrontendController
+    protected function getTypoScriptFrontendController(): ?TypoScriptFrontendController
     {
-        return $GLOBALS['TSFE'];
+        return $GLOBALS['TSFE'] ?? null;
     }
 }

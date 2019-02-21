@@ -24,17 +24,11 @@ call_user_func(function () {
         'Category',
         [
             'Post' => 'listPostsByCategory',
-        ],
-        [
-            'Post' => 'listPostsByCategory',
         ]
     );
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
         'T3G.AgencyPack.Blog',
         'AuthorPosts',
-        [
-            'Post' => 'listPostsByAuthor',
-        ],
         [
             'Post' => 'listPostsByAuthor',
         ]
@@ -49,9 +43,6 @@ call_user_func(function () {
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
         'T3G.AgencyPack.Blog',
         'Archive',
-        [
-            'Post' => 'listPostsByDate',
-        ],
         [
             'Post' => 'listPostsByDate',
         ]
@@ -170,14 +161,23 @@ call_user_func(function () {
         \T3G\AgencyPack\Blog\Hooks\DataHandlerHook::class;
 
     /** @noinspection UnsupportedStringOffsetOperationsInspection */
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update'][\T3G\AgencyPack\Blog\Install\Updates\DatabaseMonthYearUpdate::class]
-        = \T3G\AgencyPack\Blog\Install\Updates\DatabaseMonthYearUpdate::class;
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['T3G\AgencyPack\Blog\Install\Updates\DatabaseMonthYearUpdate']
+        = \T3G\AgencyPack\Blog\Updates\DatabaseMonthYearUpdate::class;
     /** @noinspection UnsupportedStringOffsetOperationsInspection */
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update'][\T3G\AgencyPack\Blog\Install\Updates\DatabasePublishDateUpdate::class]
-        = \T3G\AgencyPack\Blog\Install\Updates\DatabasePublishDateUpdate::class;
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['T3G\AgencyPack\Blog\Install\Updates\DatabasePublishDateUpdate']
+        = \T3G\AgencyPack\Blog\Updates\DatabasePublishDateUpdate::class;
     /** @noinspection UnsupportedStringOffsetOperationsInspection */
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update'][\T3G\AgencyPack\Blog\Install\Updates\AvatarProviderUpdate::class]
-        = \T3G\AgencyPack\Blog\Install\Updates\AvatarProviderUpdate::class;
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update']['T3G\AgencyPack\Blog\Install\Updates\AvatarProviderUpdate']
+        = \T3G\AgencyPack\Blog\Updates\AvatarProviderUpdate::class;
+    /** @noinspection UnsupportedStringOffsetOperationsInspection */
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update'][\T3G\AgencyPack\Blog\Updates\CategorySlugUpdate::class]
+        = \T3G\AgencyPack\Blog\Updates\CategorySlugUpdate::class;
+    /** @noinspection UnsupportedStringOffsetOperationsInspection */
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update'][\T3G\AgencyPack\Blog\Updates\AuthorSlugUpdate::class]
+        = \T3G\AgencyPack\Blog\Updates\AuthorSlugUpdate::class;
+    /** @noinspection UnsupportedStringOffsetOperationsInspection */
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install']['update'][\T3G\AgencyPack\Blog\Updates\TagSlugUpdate::class]
+    = \T3G\AgencyPack\Blog\Updates\TagSlugUpdate::class;
 
     if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('realurl')) {
         /** @noinspection UnsupportedStringOffsetOperationsInspection */
@@ -193,6 +193,11 @@ call_user_func(function () {
         'priority' => 20,
         'class' => \T3G\AgencyPack\Blog\Form\Wizards\SocialWizard::class
     ];
+
+    // Register Social Image Wizard
+    /** @noinspection UnsupportedStringOffsetOperationsInspection */
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['routing']['aspects']['BlogStaticDatabaseMapper'] =
+        \T3G\AgencyPack\Blog\Routing\Aspect\StaticDatabaseMapper::class;
 
     // Register Notification visitors
     /** @noinspection UnsupportedStringOffsetOperationsInspection */

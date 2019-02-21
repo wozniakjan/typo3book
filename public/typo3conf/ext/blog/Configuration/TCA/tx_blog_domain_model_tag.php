@@ -36,7 +36,14 @@ return [
         'searchFields' => 'uid,title',
     ],
     'interface' => [
-        'showRecordFieldList' => 'hidden,title,sys_language_uid,l18n_parent,l18n_diffsource',
+        'showRecordFieldList' => '
+            hidden,
+            title,
+            slug,
+            sys_language_uid,
+            l18n_parent,
+            l18n_diffsource
+        ',
     ],
     'columns' => [
         'pid' => [
@@ -73,6 +80,23 @@ return [
                 'size' => 30,
                 'eval' => 'required,trim',
             ],
+        ],
+        'slug' => [
+            'exclude' => 0,
+            'label' => $ll . 'tx_blog_domain_model_tag.slug',
+            'displayCond' => 'USER:' . \TYPO3\CMS\Core\Compatibility\PseudoSiteTcaDisplayCondition::class . '->isInPseudoSite:pages:false',
+            'config' => [
+                'type' => 'slug',
+                'generatorOptions' => [
+                    'fields' => ['title'],
+                    'replacements' => [
+                        '/' => ''
+                    ],
+                ],
+                'fallbackCharacter' => '-',
+                'eval' => 'uniqueInSite',
+                'default' => ''
+            ]
         ],
         'description' => [
             'exclude' => 1,
@@ -118,6 +142,7 @@ return [
             'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.language',
             'config' => [
                 'type' => 'select',
+                'default' => 0,
                 'renderType' => 'selectSingle',
                 'foreign_table' => 'sys_language',
                 'foreign_table_where' => 'ORDER BY sys_language.title',
@@ -149,8 +174,15 @@ return [
     ],
     'types' => [
         0 => [
-            'showitem' => 'title, --palette--;;paletteCore,
-            --div--;' . $ll . 'tx_blog_domain_model_tag.tabs.seo, description, content',
+            'showitem' => '
+                --div--;' . $ll . 'tx_blog_domain_model_tag.tabs.general,
+                    title,
+                    slug,
+                    --palette--;;paletteCore,
+                --div--;' . $ll . 'tx_blog_domain_model_tag.tabs.seo,
+                    description,
+                    content
+            ',
         ],
     ],
     'palettes' => [

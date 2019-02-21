@@ -10,21 +10,9 @@ declare(strict_types = 1);
 
 namespace T3G\AgencyPack\Blog\Form\Wizards;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
- *
- * For the full copyright and license information, please read the
- * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
- */
-
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use T3G\AgencyPack\Blog\Domain\Model\Author;
 use T3G\AgencyPack\Blog\Domain\Model\Post;
 use T3G\AgencyPack\Blog\Domain\Repository\PostRepository;
 use TYPO3\CMS\Backend\Template\ModuleTemplate;
@@ -35,10 +23,6 @@ use TYPO3\CMS\Core\Utility\PathUtility;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Fluid\View\StandaloneView;
 
-/**
- * Class SocialImageWizardController
- *
- */
 class SocialImageWizardController
 {
     /**
@@ -94,13 +78,18 @@ class SocialImageWizardController
             ->get(PostRepository::class)
             ->findCurrentPost();
 
-        return $post instanceof Post ? [
-            'author' => $post->getAuthors()->current()->getName(),
-            'image' => $post->getMedia()->current()->getOriginalResource()->getPublicUrl(),
-            'title' => $post->getTitle(),
-            'uid' => $post->getUid(),
-            'table' => 'pages'
-        ] : [];
+        $result = [];
+        if ($post instanceof Post) {
+            $author = $post->getAuthors()->current();
+            $result = [
+                'author' => $author instanceof Author ? $author->getName() : '',
+                'image' => $post->getMedia()->current()->getOriginalResource()->getPublicUrl(),
+                'title' => $post->getTitle(),
+                'uid' => $post->getUid(),
+                'table' => 'pages'
+            ];
+        }
+        return $result;
     }
 
     /**
