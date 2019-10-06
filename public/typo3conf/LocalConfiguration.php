@@ -65,12 +65,12 @@ return [
     'MAIL' => [
         'defaultMailFromAddress' => 'elli@typo3book.com',
         'defaultMailReplyToAddress' => 'elli@typo3book.com',
-        'transport' => 'smtp',
-        'transport_sendmail_command' => '',
-        'transport_smtp_encrypt' => 'ssl',
-        'transport_smtp_password' => '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',
-        'transport_smtp_server' => 'smtp.sendgrid.net:465',
-        'transport_smtp_username' => 'apikey',
+        'transport' => 'sendmail',
+        'transport_sendmail_command' => '/usr/local/bin/mailhog sendmail test@example.org --smtp-addr 127.0.0.1:1025',
+        'transport_smtp_encrypt' => '',
+        'transport_smtp_password' => '',
+        'transport_smtp_server' => '',
+        'transport_smtp_username' => '',
     ],
     'SYS' => [
         'devIPmask' => '*',
