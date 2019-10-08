@@ -1,5 +1,5 @@
 rootPageId: 1
-base: 'https://www.typo3book.com/'
+base: '/'
 baseVariants:
   -
     base: 'http://typo3book.ddev.local/'
